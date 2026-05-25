@@ -1,4 +1,5 @@
 {
+  "type": "module",
   "name": "mr-clean-laundry",
   "version": "1.0.0",
   "description": "Laundry Management System - Mr. Clean",
