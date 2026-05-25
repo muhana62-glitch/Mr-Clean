@@ -1,5 +1,9 @@
 -- MR. CLEAN LAUNDRY DATABASE SCHEMA
+<<<<<<< HEAD
 -- Copy-paste this ke Supabase SQL Editor
+=======
+-- Jalankan di Supabase SQL Editor
+>>>>>>> 6f9232cb17267921b3d072fe34b6e5c440ce2bba
 
 CREATE EXTENSION IF NOT EXISTS "uuid-ossp";
 
