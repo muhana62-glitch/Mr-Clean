@@ -40,6 +40,8 @@ export default function KaryawanDashboard() {
   }
 
   useEffect(() => {
+    let channel: any = null
+
     async function init() {
       const user = await getCurrentUser()
       if (!user) { router.push('/karyawan/login'); return }
@@ -47,9 +49,36 @@ export default function KaryawanDashboard() {
       if (profile && profile.role !== 'karyawan') { router.push('/karyawan/login'); return }
       setUserName(profile?.nama ?? 'Karyawan')
       await fetchOrders()
+
+      // Realtime: order baru masuk otomatis muncul tanpa refresh
+      channel = supabase
+        .channel('karyawan-orders-realtime')
+        .on('postgres_changes', {
+          event: 'INSERT',
+          schema: 'public',
+          table: 'orders',
+        }, () => {
+          fetchOrders()
+        })
+        .on('postgres_changes', {
+          event: 'UPDATE',
+          schema: 'public',
+          table: 'orders',
+        }, (payload) => {
+          setOrders(prev =>
+            prev.map(o => o.id === payload.new.id ? { ...o, ...payload.new } : o)
+          )
+        })
+        .subscribe()
+
       setLoading(false)
     }
+
     init()
+
+    return () => {
+      if (channel) supabase.removeChannel(channel)
+    }
   }, [router])
 
   const handleRefresh = async () => {
