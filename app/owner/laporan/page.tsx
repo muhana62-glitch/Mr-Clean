@@ -97,26 +97,33 @@ export default function LaporanPage() {
     }
   }, [periode, offset, loading])
 
-  // Hitung statistik
+  // Hitung statistik — kalau bagi_hasil_nominal 0, hitung dari total_harga
   const totalPendapatan = orders.reduce((s, o) => s + (o.total_harga || 0), 0)
-  const totalBagiHasil = orders.reduce((s, o) => s + (o.bagi_hasil_nominal || 0), 0)
-  const totalBersih = orders.reduce((s, o) => s + (o.pendapatan_bersih || 0), 0)
+  const totalBagiHasil = orders.reduce((s, o) => {
+    if (o.bagi_hasil_nominal && o.bagi_hasil_nominal > 0) return s + o.bagi_hasil_nominal
+    return s + ((o.total_harga || 0) * bagiHasilPersen / 100)
+  }, 0)
+  const totalBersih = totalPendapatan - totalBagiHasil
   const totalOrder = orders.length
 
   const handleCetakPDF = () => {
     const win = window.open('', '_blank')
     if (!win) return
 
-    const rows = orders.map((o, i) => `
+    const rows = orders.map((o, i) => {
+      const bagiHasil = o.bagi_hasil_nominal > 0 ? o.bagi_hasil_nominal : (o.total_harga * bagiHasilPersen / 100)
+      const bersih = o.total_harga - bagiHasil
+      return `
       <tr style="background:${i % 2 === 0 ? '#fff' : '#f8fafc'}">
         <td style="padding:6px 10px;border:1px solid #e2e8f0">${i + 1}</td>
         <td style="padding:6px 10px;border:1px solid #e2e8f0">${new Date(o.tanggal_masuk).toLocaleDateString('id-ID')}</td>
         <td style="padding:6px 10px;border:1px solid #e2e8f0">${o.no_order}</td>
         <td style="padding:6px 10px;border:1px solid #e2e8f0">${o.pelanggan?.nama ?? '—'}</td>
         <td style="padding:6px 10px;border:1px solid #e2e8f0;text-align:right">${formatRupiah(o.total_harga)}</td>
-        <td style="padding:6px 10px;border:1px solid #e2e8f0;text-align:right;color:#dc2626">${formatRupiah(o.bagi_hasil_nominal)}</td>
-        <td style="padding:6px 10px;border:1px solid #e2e8f0;text-align:right;color:#16a34a;font-weight:600">${formatRupiah(o.pendapatan_bersih)}</td>
-      </tr>`).join('')
+        <td style="padding:6px 10px;border:1px solid #e2e8f0;text-align:right;color:#dc2626">${formatRupiah(bagiHasil)}</td>
+        <td style="padding:6px 10px;border:1px solid #e2e8f0;text-align:right;color:#16a34a;font-weight:600">${formatRupiah(bersih)}</td>
+      </tr>`
+    }).join('')
 
     win.document.write(`<!DOCTYPE html><html><head>
       <title>Laporan ${label}</title>
@@ -301,16 +308,20 @@ export default function LaporanPage() {
                   </tr>
                 </thead>
                 <tbody>
-                  {orders.map(o => (
+                  {orders.map(o => {
+                    const bagiHasil = o.bagi_hasil_nominal > 0 ? o.bagi_hasil_nominal : (o.total_harga * bagiHasilPersen / 100)
+                    const bersih = o.total_harga - bagiHasil
+                    return (
                     <tr key={o.id} className="border-b border-gray-50 hover:bg-gray-50 transition">
                       <td className="px-5 py-3 text-gray-600 text-xs">{new Date(o.tanggal_masuk).toLocaleDateString('id-ID', { day: 'numeric', month: 'short', year: 'numeric' })}</td>
                       <td className="px-5 py-3 font-mono text-gray-900 text-xs">{o.no_order}</td>
                       <td className="px-5 py-3 text-gray-700">{o.pelanggan?.nama ?? '—'}</td>
                       <td className="px-5 py-3 text-right font-semibold text-gray-900">{formatRupiah(o.total_harga)}</td>
-                      <td className="px-5 py-3 text-right text-red-500">- {formatRupiah(o.bagi_hasil_nominal)}</td>
-                      <td className="px-5 py-3 text-right font-bold text-green-700">{formatRupiah(o.pendapatan_bersih)}</td>
+                      <td className="px-5 py-3 text-right text-red-500">- {formatRupiah(bagiHasil)}</td>
+                      <td className="px-5 py-3 text-right font-bold text-green-700">{formatRupiah(bersih)}</td>
                     </tr>
-                  ))}
+                    )
+                  })}
                 </tbody>
                 <tfoot className="bg-gray-50 border-t-2 border-gray-200">
                   <tr>
