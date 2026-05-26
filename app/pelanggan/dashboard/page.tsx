@@ -70,6 +70,8 @@ export default function PelangganDashboard() {
   }
 
   useEffect(() => {
+    let channel: any = null
+
     async function init() {
       const user = await getCurrentUser()
       if (!user) { router.push('/pelanggan/login'); return }
@@ -83,6 +85,29 @@ export default function PelangganDashboard() {
       if (pel) {
         setPelangganId(pel.id)
         await fetchOrders(pel.id)
+
+        // Realtime: update status otomatis tanpa refresh
+        channel = supabase
+          .channel(`orders-pelanggan-${pel.id}`)
+          .on('postgres_changes', {
+            event: 'UPDATE',
+            schema: 'public',
+            table: 'orders',
+            filter: `pelanggan_id=eq.${pel.id}`,
+          }, (payload) => {
+            setOrders(prev =>
+              prev.map(o => o.id === payload.new.id ? { ...o, ...payload.new } : o)
+            )
+          })
+          .on('postgres_changes', {
+            event: 'INSERT',
+            schema: 'public',
+            table: 'orders',
+            filter: `pelanggan_id=eq.${pel.id}`,
+          }, () => {
+            fetchOrders(pel.id)
+          })
+          .subscribe()
       }
 
       // Ambil jenis cucian
@@ -93,7 +118,12 @@ export default function PelangganDashboard() {
 
       setLoading(false)
     }
+
     init()
+
+    return () => {
+      if (channel) supabase.removeChannel(channel)
+    }
   }, [router])
 
   const handleRefresh = async () => {
