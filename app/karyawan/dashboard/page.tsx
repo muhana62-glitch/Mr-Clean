@@ -213,7 +213,11 @@ export default function KaryawanDashboard() {
                 ) : (
                   filtered.map(order => (
                     <tr key={order.id} className="border-b border-gray-50 hover:bg-gray-50 transition">
-                      <td className="px-5 py-4 font-mono font-semibold text-gray-900">{order.no_order}</td>
+                      <td className="px-5 py-4 font-mono font-semibold text-gray-900">
+                        <Link href={`/karyawan/order/${order.id}`} className="text-blue-600 hover:underline">
+                          {order.no_order}
+                        </Link>
+                      </td>
                       <td className="px-5 py-4">
                         <p className="font-medium text-gray-900">{order.pelanggan?.nama ?? 'Tamu'}</p>
                         <p className="text-xs text-gray-500">{order.pelanggan?.no_wa ?? '—'}</p>

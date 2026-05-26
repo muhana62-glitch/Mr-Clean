@@ -150,6 +150,90 @@ export default function PelangganDashboard() {
     router.push('/')
   }
 
+  const handleDownloadInvoice = async (order: Order) => {
+    // Ambil detail order
+    const { data: details } = await supabase
+      .from('order_detail')
+      .select('nama_item, kuantitas, kategori, harga_satuan, subtotal')
+      .eq('order_id', order.id)
+
+    const win = window.open('', '_blank')
+    if (!win) return
+
+    const itemRows = (details ?? []).map((d: any) => `
+      <tr>
+        <td style="padding:6px 8px;border:1px solid #ddd">${d.nama_item}</td>
+        <td style="padding:6px 8px;border:1px solid #ddd;text-align:center">${d.kuantitas} ${d.kategori === 'kiloan' ? 'kg' : 'pcs'}</td>
+        <td style="padding:6px 8px;border:1px solid #ddd;text-align:right">Rp ${Number(d.harga_satuan).toLocaleString('id-ID')}</td>
+        <td style="padding:6px 8px;border:1px solid #ddd;text-align:right">Rp ${Number(d.subtotal).toLocaleString('id-ID')}</td>
+      </tr>`).join('')
+
+    win.document.write(`<!DOCTYPE html><html><head>
+      <title>Invoice ${order.no_order}</title>
+      <style>
+        * { margin:0; padding:0; box-sizing:border-box; }
+        body { font-family: Arial, sans-serif; font-size: 13px; padding: 30px; color: #333; }
+        .header { text-align: center; margin-bottom: 20px; border-bottom: 2px solid #1d4ed8; padding-bottom: 15px; }
+        .header h1 { font-size: 20px; color: #1d4ed8; font-weight: bold; }
+        .header p { font-size: 11px; color: #666; margin-top: 3px; }
+        .invoice-title { font-size: 16px; font-weight: bold; text-align: center; margin: 15px 0; color: #1d4ed8; letter-spacing: 2px; }
+        .info-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 15px; margin-bottom: 20px; }
+        .info-box { background: #f8fafc; border: 1px solid #e2e8f0; border-radius: 6px; padding: 12px; }
+        .info-box h4 { font-size: 11px; color: #64748b; text-transform: uppercase; margin-bottom: 6px; }
+        .info-box p { font-size: 13px; font-weight: 600; }
+        table { width: 100%; border-collapse: collapse; margin-bottom: 15px; }
+        thead tr { background: #1d4ed8; color: white; }
+        thead th { padding: 8px; text-align: left; font-size: 12px; }
+        tbody tr:nth-child(even) { background: #f8fafc; }
+        .total-box { margin-left: auto; width: 260px; border: 2px solid #1d4ed8; border-radius: 8px; padding: 12px; }
+        .total-row { display: flex; justify-content: space-between; padding: 4px 0; font-size: 13px; }
+        .total-row.final { border-top: 2px solid #1d4ed8; padding-top: 8px; font-weight: bold; font-size: 15px; color: #1d4ed8; }
+        .footer { margin-top: 30px; text-align: center; font-size: 11px; color: #94a3b8; border-top: 1px solid #e2e8f0; padding-top: 15px; }
+        @media print { body { padding: 15px; } }
+      </style>
+    </head><body>
+      <div class="header">
+        <h1>MR. CLEAN ONE STOP LAUNDRY</h1>
+        <p>Limbangan Wetan, Kec. Brebes, Kabupaten Brebes, Jawa Tengah</p>
+        <p>WhatsApp: 081902156350</p>
+      </div>
+      <div class="invoice-title">INVOICE</div>
+      <div class="info-grid">
+        <div class="info-box">
+          <h4>Pelanggan</h4>
+          <p>${userName}</p>
+        </div>
+        <div class="info-box">
+          <h4>Detail Invoice</h4>
+          <p>No. Order: ${order.no_order}</p>
+          <span style="font-size:12px;color:#475569">Tanggal: ${formatTanggal(order.tanggal_masuk)}</span>
+        </div>
+      </div>
+      <table>
+        <thead>
+          <tr>
+            <th style="padding:8px">Item Cucian</th>
+            <th style="padding:8px;text-align:center">Qty</th>
+            <th style="padding:8px;text-align:right">Harga Satuan</th>
+            <th style="padding:8px;text-align:right">Subtotal</th>
+          </tr>
+        </thead>
+        <tbody>${itemRows}</tbody>
+      </table>
+      <div class="total-box">
+        <div class="total-row final">
+          <span>TOTAL BAYAR</span>
+          <span>Rp ${Number(order.total_harga).toLocaleString('id-ID')}</span>
+        </div>
+      </div>
+      <div class="footer">
+        <p>Terima kasih telah menggunakan layanan Mr. Clean One Stop Laundry 🙏</p>
+      </div>
+    </body></html>`)
+    win.document.close()
+    setTimeout(() => win.print(), 500)
+  }
+
   const handleGantiPassword = async () => {
     setGantiPassError('')
     if (newPass !== confirmPass) { setGantiPassError('Password baru tidak cocok.'); return }
@@ -510,6 +594,7 @@ export default function PelangganDashboard() {
                     <th className="px-5 py-3 text-left font-semibold text-gray-600">Pengiriman</th>
                     <th className="px-5 py-3 text-left font-semibold text-gray-600">Total</th>
                     <th className="px-5 py-3 text-left font-semibold text-gray-600">Status</th>
+                    <th className="px-5 py-3 text-left font-semibold text-gray-600">Invoice</th>
                   </tr>
                 </thead>
                 <tbody>
@@ -525,6 +610,18 @@ export default function PelangganDashboard() {
                         <span className={`px-3 py-1 rounded-full text-xs font-semibold ${getStatusColor(order.status)}`}>
                           {getStatusLabel(order.status)}
                         </span>
+                      </td>
+                      <td className="px-5 py-4">
+                        {['selesai', 'diambil'].includes(order.status) && order.total_harga > 0 ? (
+                          <button
+                            onClick={() => handleDownloadInvoice(order)}
+                            className="flex items-center gap-1 text-xs bg-blue-50 hover:bg-blue-100 text-blue-700 px-2.5 py-1.5 rounded-lg transition font-medium"
+                          >
+                            📄 Invoice
+                          </button>
+                        ) : (
+                          <span className="text-xs text-gray-400">—</span>
+                        )}
                       </td>
                     </tr>
                   ))}
