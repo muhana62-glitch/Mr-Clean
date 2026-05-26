@@ -93,21 +93,26 @@ export default function PelangganDashboard() {
             event: 'UPDATE',
             schema: 'public',
             table: 'orders',
-            filter: `pelanggan_id=eq.${pel.id}`,
           }, (payload) => {
-            setOrders(prev =>
-              prev.map(o => o.id === payload.new.id ? { ...o, ...payload.new } : o)
-            )
+            // Filter di client berdasarkan pelanggan_id
+            if (payload.new.pelanggan_id === pel.id) {
+              setOrders(prev =>
+                prev.map(o => o.id === payload.new.id ? { ...o, ...payload.new } : o)
+              )
+            }
           })
           .on('postgres_changes', {
             event: 'INSERT',
             schema: 'public',
             table: 'orders',
-            filter: `pelanggan_id=eq.${pel.id}`,
-          }, () => {
-            fetchOrders(pel.id)
+          }, (payload) => {
+            if (payload.new.pelanggan_id === pel.id) {
+              fetchOrders(pel.id)
+            }
           })
-          .subscribe()
+          .subscribe((status) => {
+            console.log('Realtime status:', status)
+          })
       }
 
       // Ambil jenis cucian
