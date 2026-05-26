@@ -22,7 +22,6 @@ export async function registerPelanggan(
   if (error) throw error
 
   if (data.user) {
-    // Insert ke tabel users
     const { error: userErr } = await supabase.from('users').insert({
       id: data.user.id,
       email,
@@ -32,7 +31,6 @@ export async function registerPelanggan(
     })
     if (userErr) throw userErr
 
-    // Insert ke tabel pelanggan
     const { error: pelangganErr } = await supabase.from('pelanggan').insert({
       user_id: data.user.id,
     })
@@ -55,7 +53,7 @@ export async function getCurrentUser() {
   return data.user
 }
 
-// ─── Get User Profile (with role) ────────────────────────────────────────────
+// ─── Get User Profile ────────────────────────────────────────────────────────
 export async function getUserProfile(userId: string): Promise<UserProfile | null> {
   const { data, error } = await supabase
     .from('users')
@@ -67,8 +65,12 @@ export async function getUserProfile(userId: string): Promise<UserProfile | null
   return data as UserProfile
 }
 
-// ─── Get Role ─────────────────────────────────────────────────────────────────
+// ─── Get Role — pakai session aktif ──────────────────────────────────────────
 export async function getUserRole(userId: string): Promise<UserRole | null> {
+  // Pastikan session aktif dulu
+  const { data: sessionData } = await supabase.auth.getSession()
+  if (!sessionData.session) return null
+
   const { data, error } = await supabase
     .from('users')
     .select('role')
@@ -79,7 +81,27 @@ export async function getUserRole(userId: string): Promise<UserRole | null> {
   return data.role as UserRole
 }
 
-// ─── Dashboard redirect berdasarkan role ─────────────────────────────────────
+// ─── Login dan langsung dapat role ───────────────────────────────────────────
+export async function loginAndGetRole(email: string, password: string): Promise<{ userId: string; role: UserRole }> {
+  const { data, error } = await supabase.auth.signInWithPassword({ email, password })
+  if (error) throw error
+  if (!data.user) throw new Error('Login gagal.')
+
+  // Setelah signIn, session sudah aktif — langsung query
+  const { data: userData, error: userError } = await supabase
+    .from('users')
+    .select('role')
+    .eq('id', data.user.id)
+    .single()
+
+  if (userError || !userData) {
+    throw new Error('Akun tidak ditemukan di sistem. Hubungi admin.')
+  }
+
+  return { userId: data.user.id, role: userData.role as UserRole }
+}
+
+// ─── Dashboard path ───────────────────────────────────────────────────────────
 export function getDashboardPath(role: UserRole): string {
   const paths: Record<UserRole, string> = {
     pelanggan: '/pelanggan/dashboard',

@@ -3,7 +3,7 @@
 import { useState } from 'react'
 import { useRouter } from 'next/navigation'
 import Link from 'next/link'
-import { loginUser, getUserRole } from '@/lib/auth'
+import { loginAndGetRole } from '@/lib/auth'
 import { AlertCircle, Mail, Lock, Eye, EyeOff } from 'lucide-react'
 
 export default function KaryawanLogin() {
@@ -19,10 +19,7 @@ export default function KaryawanLogin() {
     setError('')
     setLoading(true)
     try {
-      const { user } = await loginUser(email, password)
-      if (!user) throw new Error('Login gagal.')
-
-      const role = await getUserRole(user.id)
+      const { role } = await loginAndGetRole(email, password)
       if (role !== 'karyawan') {
         throw new Error('Akun ini bukan akun karyawan.')
       }
@@ -37,7 +34,6 @@ export default function KaryawanLogin() {
   return (
     <div className="min-h-screen bg-gradient-to-br from-blue-50 via-sky-50 to-cyan-50 flex items-center justify-center p-4">
       <div className="w-full max-w-md">
-        {/* Logo */}
         <div className="text-center mb-6">
           <Link href="/" className="inline-flex flex-col items-center gap-1">
             <span className="text-5xl">🧺</span>
