@@ -66,8 +66,7 @@ export default function PelangganLogin() {
         {/* Logo */}
         <div className="text-center mb-6">
           <Link href="/" className="inline-flex flex-col items-center gap-1">
-            <span className="text-5xl">🧺</span>
-            <span className="font-extrabold text-green-900 text-xl">Mr. Clean Laundry</span>
+            <img src="/logo_mrclean.png" alt="Mr. Clean" className="h-16 w-auto" />
             <span className="text-gray-500 text-sm">Portal Pelanggan</span>
           </Link>
         </div>

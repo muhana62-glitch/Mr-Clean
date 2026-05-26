@@ -237,7 +237,7 @@ export default function PelangganDashboard() {
       <header className="bg-white border-b border-gray-200 sticky top-0 z-10">
         <div className="max-w-4xl mx-auto px-4 py-4 flex items-center justify-between">
           <div className="flex items-center gap-3">
-            <span className="text-2xl">🧺</span>
+            <img src="/logo_mrclean.png" alt="Mr. Clean" className="h-9 w-auto" />
             <div>
               <p className="font-bold text-gray-900 leading-none">Halo, {userName} 👋</p>
               <p className="text-xs text-gray-500 mt-0.5">Dashboard Pelanggan</p>

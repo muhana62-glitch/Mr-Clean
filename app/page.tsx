@@ -24,7 +24,7 @@ export default function Home() {
       <nav className="sticky top-0 z-50 bg-white border-b border-gray-100 shadow-sm">
         <div className="max-w-6xl mx-auto px-4 py-3 flex items-center justify-between">
           <div className="flex items-center gap-2">
-            <span className="text-2xl">🧺</span>
+            <img src="/logo_mrclean.png" alt="Mr. Clean" className="h-10 w-auto" />
             <div>
               <span className="font-bold text-blue-900 text-lg leading-none">Mr. Clean</span>
               <span className="block text-xs text-gray-500 leading-none">One Stop Laundry</span>
@@ -349,7 +349,7 @@ export default function Home() {
       <footer className="bg-blue-900 text-blue-200 py-8">
         <div className="max-w-6xl mx-auto px-4 flex flex-col md:flex-row items-center justify-between gap-4">
           <div className="flex items-center gap-2">
-            <span className="text-2xl">🧺</span>
+            <img src="/logo_mrclean.png" alt="Mr. Clean" className="h-10 w-auto" />
             <div>
               <p className="font-bold text-white">Mr. Clean One Stop Laundry</p>
               <p className="text-xs text-blue-300">Limbangan Wetan, Brebes, Jawa Tengah</p>

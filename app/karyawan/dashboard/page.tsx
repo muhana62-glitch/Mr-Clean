@@ -63,6 +63,38 @@ export default function KaryawanDashboard() {
     setOrders(prev => prev.map(o => o.id === orderId ? { ...o, status: newStatus } : o))
   }
 
+  const handleWANotif = async (order: Order) => {
+    // Ambil detail item cucian
+    const { data: details } = await supabase
+      .from('order_detail')
+      .select('nama_item, kuantitas, kategori')
+      .eq('order_id', order.id)
+
+    const nama = order.pelanggan?.nama ?? 'Pelanggan'
+    const noWa = order.pelanggan?.no_wa ?? ''
+    if (!noWa) { alert('Nomor WhatsApp pelanggan tidak tersedia.'); return }
+
+    // Buat daftar item
+    const itemList = details && details.length > 0
+      ? details.map((d: any) => `  - ${d.nama_item} (${d.kuantitas} ${d.kategori === 'kiloan' ? 'kg' : 'pcs'})`).join('\n')
+      : '  - (tidak ada detail)'
+
+    const statusLabel = getStatusLabel(order.status)
+    const pesan = `Halo ${nama} 👋\n\nKami dari *Mr. Clean One Stop Laundry* ingin memberitahukan bahwa cucian Anda dengan:\n\n📋 *No. Order:* ${order.no_order}\n🧺 *Item Cucian:*\n${itemList}\n\n✅ *Status:* ${statusLabel}\n\n${
+      order.status === 'selesai'
+        ? 'Cucian Anda sudah *selesai* dan siap untuk diambil. Silakan datang ke Mr. Clean atau hubungi kami untuk pengiriman. 🎉'
+        : order.status === 'diproses'
+        ? 'Cucian Anda sedang *dalam proses* pencucian. Kami akan segera memberitahu jika sudah selesai.'
+        : order.status === 'diambil'
+        ? 'Terima kasih telah menggunakan layanan *Mr. Clean Laundry*. Sampai jumpa lagi! 😊'
+        : `Status cucian Anda: *${statusLabel}*`
+    }\n\nTerima kasih telah mempercayakan cucian Anda kepada kami! 🙏\n\n_Mr. Clean One Stop Laundry_\n_Limbangan Wetan, Brebes_\n_WA: 081902156350_`
+
+    const waNumber = noWa.replace(/^0/, '62').replace(/\D/g, '')
+    const waUrl = `https://wa.me/${waNumber}?text=${encodeURIComponent(pesan)}`
+    window.open(waUrl, '_blank')
+  }
+
   const handleLogout = async () => {
     await logoutUser()
     router.push('/')
@@ -97,7 +129,7 @@ export default function KaryawanDashboard() {
       <header className="bg-white border-b border-gray-200 sticky top-0 z-10">
         <div className="max-w-6xl mx-auto px-4 py-4 flex items-center justify-between">
           <div className="flex items-center gap-3">
-            <span className="text-2xl">🧺</span>
+            <img src="/logo_mrclean.png" alt="Mr. Clean" className="h-9 w-auto" />
             <div>
               <p className="font-bold text-gray-900 leading-none">Halo, {userName} 👷</p>
               <p className="text-xs text-gray-500 mt-0.5">Dashboard Karyawan</p>
@@ -197,12 +229,25 @@ export default function KaryawanDashboard() {
                         </span>
                       </td>
                       <td className="px-5 py-4">
-                        <div className="relative">
-                          <select value={order.status} onChange={e => handleUpdateStatus(order.id, e.target.value)}
-                            className="appearance-none border border-gray-300 rounded-lg px-3 py-1.5 text-xs pr-7 focus:outline-none focus:ring-2 focus:ring-blue-500 bg-white">
-                            {STATUS_OPTIONS.map(s => <option key={s} value={s}>{getStatusLabel(s)}</option>)}
-                          </select>
-                          <ChevronDown className="absolute right-2 top-1/2 -translate-y-1/2 text-gray-400 pointer-events-none" size={12} />
+                        <div className="flex items-center gap-2">
+                          <div className="relative">
+                            <select value={order.status} onChange={e => handleUpdateStatus(order.id, e.target.value)}
+                              className="appearance-none border border-gray-300 rounded-lg px-3 py-1.5 text-xs pr-7 focus:outline-none focus:ring-2 focus:ring-blue-500 bg-white">
+                              {STATUS_OPTIONS.map(s => <option key={s} value={s}>{getStatusLabel(s)}</option>)}
+                            </select>
+                            <ChevronDown className="absolute right-2 top-1/2 -translate-y-1/2 text-gray-400 pointer-events-none" size={12} />
+                          </div>
+                          {/* Tombol WA notif ke pelanggan */}
+                          <button
+                            onClick={() => handleWANotif(order)}
+                            title="Kirim notifikasi WhatsApp ke pelanggan"
+                            className="p-1.5 bg-green-500 hover:bg-green-600 text-white rounded-lg transition"
+                          >
+                            <svg viewBox="0 0 24 24" className="w-4 h-4 fill-current">
+                              <path d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.298-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51-.173-.008-.371-.01-.57-.01-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.694.625.712.227 1.36.195 1.871.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413-.074-.124-.272-.198-.57-.347z"/>
+                              <path d="M12 0C5.373 0 0 5.373 0 12c0 2.123.554 4.118 1.528 5.855L0 24l6.335-1.508A11.945 11.945 0 0012 24c6.627 0 12-5.373 12-12S18.627 0 12 0zm0 21.818a9.818 9.818 0 01-5.006-1.371l-.36-.214-3.732.888.936-3.618-.235-.372A9.818 9.818 0 1112 21.818z"/>
+                            </svg>
+                          </button>
                         </div>
                       </td>
                     </tr>
