@@ -266,15 +266,18 @@ export default function PelangganDashboard() {
     if (existing) {
       setItems(items.filter(i => i.jenis_id !== String(jc.id)))
     } else {
+      const isKiloan = !!jc.harga_kiloan
       const harga = jc.harga_satuan ?? jc.harga_kiloan ?? 0
-      const kategori_harga: 'kiloan' | 'satuan' = jc.harga_satuan ? 'satuan' : 'kiloan'
+      const kategori_harga: 'kiloan' | 'satuan' = isKiloan ? 'kiloan' : 'satuan'
+      // Kiloan: qty 0 (belum ditimbang), satuan: qty 1
+      const kuantitas = isKiloan ? 0 : 1
       setItems([...items, {
         jenis_id: String(jc.id),
         nama: jc.nama,
         kategori_harga,
-        kuantitas: 1,
+        kuantitas,
         harga,
-        subtotal: harga,
+        subtotal: harga * kuantitas,
       }])
     }
   }
@@ -511,7 +514,7 @@ export default function PelangganDashboard() {
                         className={`text-left p-3 rounded-xl border-2 transition text-sm ${selected ? 'border-green-500 bg-green-50' : 'border-gray-200 hover:border-green-300 bg-white'}`}>
                         <p className="font-medium text-gray-900 leading-tight">{jc.nama}</p>
                         <p className="text-xs text-gray-400 mt-0.5">
-                          {jc.harga_satuan ? formatRupiah(jc.harga_satuan) + '/' + jc.satuan : jc.harga_kiloan ? formatRupiah(jc.harga_kiloan) + '/kg' : 'Harga belum diset'}
+                          {jc.harga_kiloan ? 'Per kilogram' : `Per ${jc.satuan}`}
                         </p>
                         {selected && <span className="text-xs text-green-600 font-semibold">✓ Dipilih</span>}
                       </button>
@@ -529,26 +532,30 @@ export default function PelangganDashboard() {
                       <div key={item.jenis_id} className="flex items-center gap-3 bg-gray-50 rounded-xl px-4 py-3">
                         <div className="flex-1">
                           <p className="text-sm font-medium text-gray-900">{item.nama}</p>
-                          <p className="text-xs text-gray-500">{formatRupiah(item.harga)}/{item.kategori_harga === 'kiloan' ? 'kg' : 'pcs'}</p>
+                          <p className="text-xs text-gray-500">
+                            {item.kategori_harga === 'kiloan'
+                              ? '⚖️ Berat akan ditimbang oleh karyawan'
+                              : `Per ${item.kategori_harga === 'satuan' ? 'pcs' : 'pcs'}`}
+                          </p>
                         </div>
-                        <div className="flex items-center gap-2">
-                          <button onClick={() => updateKuantitas(item.jenis_id, Math.max(0.5, item.kuantitas - (item.kategori_harga === 'kiloan' ? 0.5 : 1)))}
-                            className="w-7 h-7 rounded-full bg-gray-200 hover:bg-gray-300 flex items-center justify-center font-bold text-gray-700 transition">−</button>
-                          <span className="w-10 text-center text-sm font-semibold">{item.kuantitas}</span>
-                          <button onClick={() => updateKuantitas(item.jenis_id, item.kuantitas + (item.kategori_harga === 'kiloan' ? 0.5 : 1))}
-                            className="w-7 h-7 rounded-full bg-green-100 hover:bg-green-200 flex items-center justify-center font-bold text-green-700 transition">+</button>
-                        </div>
-                        <p className="text-sm font-bold text-gray-900 w-24 text-right">{formatRupiah(item.subtotal)}</p>
+                        {item.kategori_harga === 'satuan' ? (
+                          <div className="flex items-center gap-2">
+                            <button onClick={() => updateKuantitas(item.jenis_id, Math.max(1, item.kuantitas - 1))}
+                              className="w-7 h-7 rounded-full bg-gray-200 hover:bg-gray-300 flex items-center justify-center font-bold text-gray-700 transition">−</button>
+                            <span className="w-8 text-center text-sm font-semibold">{item.kuantitas}</span>
+                            <button onClick={() => updateKuantitas(item.jenis_id, item.kuantitas + 1)}
+                              className="w-7 h-7 rounded-full bg-green-100 hover:bg-green-200 flex items-center justify-center font-bold text-green-700 transition">+</button>
+                            <span className="text-xs text-gray-500">pcs</span>
+                          </div>
+                        ) : (
+                          <span className="text-xs bg-yellow-100 text-yellow-700 px-2 py-1 rounded-lg font-medium">Ditimbang</span>
+                        )}
                         <button onClick={() => setItems(items.filter(i => i.jenis_id !== item.jenis_id))}
                           className="text-red-400 hover:text-red-600"><X size={15} /></button>
                       </div>
                     ))}
                   </div>
-                  <div className="mt-3 flex justify-between items-center bg-green-50 rounded-xl px-4 py-3">
-                    <span className="font-semibold text-gray-700">Estimasi Total</span>
-                    <span className="font-bold text-green-700 text-lg">{formatRupiah(totalHarga)}</span>
-                  </div>
-                  <p className="text-xs text-gray-400 mt-1">* Total final akan dikonfirmasi oleh karyawan Mr. Clean</p>
+                  <p className="text-xs text-gray-400 mt-2">* Harga akan dikonfirmasi setelah cucian diterima dan ditimbang oleh karyawan</p>
                 </div>
               )}
 
