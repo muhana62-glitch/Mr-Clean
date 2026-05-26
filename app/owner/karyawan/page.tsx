@@ -41,11 +41,25 @@ export default function ManajemenKaryawan() {
   const [resetting, setResetting] = useState(false)
 
   const fetchKaryawan = async () => {
-    const { data } = await supabase
+    // Query karyawan dulu
+    const { data: karData } = await supabase
       .from('karyawan')
-      .select('id, posisi, status, user_id, users:user_id(id, nama, email, no_hp)')
+      .select('id, posisi, status, user_id')
       .order('id')
-    if (data) setKaryawanList(data as any)
+
+    if (!karData) return
+
+    // Query users secara terpisah untuk setiap karyawan
+    const result: Karyawan[] = []
+    for (const k of karData) {
+      const { data: userData } = await supabase
+        .from('users')
+        .select('id, nama, email, no_hp')
+        .eq('id', k.user_id)
+        .single()
+      result.push({ ...k, users: userData as any })
+    }
+    setKaryawanList(result)
   }
 
   useEffect(() => {
@@ -117,6 +131,7 @@ export default function ManajemenKaryawan() {
 
   const handleResetPassword = async () => {
     if (!newPassword) { setError('Password baru wajib diisi.'); return }
+    if (newPassword.length < 6) { setError('Password minimal 6 karakter.'); return }
     setResetting(true); setError('')
     try {
       const res = await fetch('/api/admin/reset-password', {
@@ -125,9 +140,9 @@ export default function ManajemenKaryawan() {
         body: JSON.stringify({ targetUserId: resetUserId, newPassword, callerToken }),
       })
       const data = await res.json()
-      if (!res.ok) throw new Error(data.error)
-      setSuccess(`Password ${resetNama} berhasil direset.`)
-      setResetUserId(''); setNewPassword('')
+      if (!res.ok) throw new Error(data.error ?? 'Gagal reset password.')
+      setSuccess(`Password ${resetNama} berhasil direset menjadi: ${newPassword}`)
+      setResetUserId(''); setNewPassword(''); setResetNama('')
     } catch (err: any) {
       setError(err.message)
     } finally {
