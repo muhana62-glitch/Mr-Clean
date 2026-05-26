@@ -134,6 +134,9 @@ export default function OwnerDashboard() {
             <Link href="/owner/master-data" className="hidden sm:flex items-center gap-1.5 text-sm bg-purple-100 hover:bg-purple-200 text-purple-700 font-semibold px-3 py-2 rounded-lg transition">
               ⚙️ Master Data
             </Link>
+            <Link href="/owner/karyawan" className="hidden sm:flex items-center gap-1.5 text-sm bg-blue-100 hover:bg-blue-200 text-blue-700 font-semibold px-3 py-2 rounded-lg transition">
+              👷 Karyawan
+            </Link>
             <Link href="/" className="hidden sm:flex items-center gap-1.5 text-sm text-gray-600 hover:text-gray-900 px-3 py-2 rounded-lg hover:bg-gray-100 transition">
               <Home size={16} /> Beranda
             </Link>

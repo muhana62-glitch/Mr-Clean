@@ -10,7 +10,6 @@ import {
   LogOut, Package, Clock, CheckCircle, MessageCircle,
   Home, RefreshCw, Plus, X, Send, ChevronDown,
 } from 'lucide-react'
-
 interface Order {
   id: number
   no_order: string
@@ -59,6 +58,14 @@ export default function PelangganDashboard() {
   const [submitting, setSubmitting] = useState(false)
   const [formError, setFormError] = useState('')
   const [successMsg, setSuccessMsg] = useState('')
+
+  // Ganti password
+  const [showGantiPass, setShowGantiPass] = useState(false)
+  const [oldPass, setOldPass] = useState('')
+  const [newPass, setNewPass] = useState('')
+  const [confirmPass, setConfirmPass] = useState('')
+  const [gantiPassLoading, setGantiPassLoading] = useState(false)
+  const [gantiPassError, setGantiPassError] = useState('')
 
   const fetchOrders = async (pid: number) => {
     const { data } = await supabase
@@ -141,6 +148,32 @@ export default function PelangganDashboard() {
   const handleLogout = async () => {
     await logoutUser()
     router.push('/')
+  }
+
+  const handleGantiPassword = async () => {
+    setGantiPassError('')
+    if (newPass !== confirmPass) { setGantiPassError('Password baru tidak cocok.'); return }
+    if (newPass.length < 6) { setGantiPassError('Password minimal 6 karakter.'); return }
+    setGantiPassLoading(true)
+    try {
+      // Re-login dulu untuk verifikasi password lama
+      const user = await getCurrentUser()
+      if (!user?.email) throw new Error('Session tidak valid.')
+      const { error: signInErr } = await supabase.auth.signInWithPassword({
+        email: user.email, password: oldPass
+      })
+      if (signInErr) throw new Error('Password lama salah.')
+      // Update password
+      const { error: updateErr } = await supabase.auth.updateUser({ password: newPass })
+      if (updateErr) throw updateErr
+      setSuccessMsg('Password berhasil diubah.')
+      setShowGantiPass(false)
+      setOldPass(''); setNewPass(''); setConfirmPass('')
+    } catch (err: any) {
+      setGantiPassError(err.message)
+    } finally {
+      setGantiPassLoading(false)
+    }
   }
 
   // Toggle item di form pesan
@@ -295,7 +328,57 @@ export default function PelangganDashboard() {
             className="flex items-center justify-center gap-2 bg-green-500 hover:bg-green-600 text-white font-semibold px-5 py-3 rounded-xl transition">
             <MessageCircle size={20} /> WhatsApp
           </a>
+          <button onClick={() => setShowGantiPass(true)}
+            className="flex items-center justify-center gap-2 bg-gray-100 hover:bg-gray-200 text-gray-700 font-semibold px-4 py-3 rounded-xl transition text-sm">
+            🔑 Ganti Password
+          </button>
         </div>
+
+        {/* Modal Ganti Password */}
+        {showGantiPass && (
+          <div className="fixed inset-0 bg-black/50 z-50 flex items-center justify-center p-4">
+            <div className="bg-white rounded-2xl shadow-2xl w-full max-w-sm p-6">
+              <div className="flex items-center justify-between mb-4">
+                <h3 className="font-bold text-gray-900">Ganti Password</h3>
+                <button onClick={() => { setShowGantiPass(false); setGantiPassError('') }}
+                  className="text-gray-400 hover:text-gray-600"><X size={18} /></button>
+              </div>
+              {gantiPassError && (
+                <div className="bg-red-50 border border-red-200 rounded-xl p-3 text-red-700 text-sm mb-4">{gantiPassError}</div>
+              )}
+              <div className="space-y-3">
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-1">Password Lama</label>
+                  <input type="password" value={oldPass} onChange={e => setOldPass(e.target.value)}
+                    placeholder="••••••••"
+                    className="w-full px-3 py-2.5 border border-gray-300 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-green-500" />
+                </div>
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-1">Password Baru</label>
+                  <input type="password" value={newPass} onChange={e => setNewPass(e.target.value)}
+                    placeholder="Min. 6 karakter"
+                    className="w-full px-3 py-2.5 border border-gray-300 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-green-500" />
+                </div>
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-1">Konfirmasi Password Baru</label>
+                  <input type="password" value={confirmPass} onChange={e => setConfirmPass(e.target.value)}
+                    placeholder="Ulangi password baru"
+                    className="w-full px-3 py-2.5 border border-gray-300 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-green-500" />
+                </div>
+              </div>
+              <div className="flex gap-3 mt-5">
+                <button onClick={() => { setShowGantiPass(false); setGantiPassError('') }}
+                  className="flex-1 border border-gray-300 text-gray-700 py-2.5 rounded-xl text-sm font-semibold hover:bg-gray-50 transition">
+                  Batal
+                </button>
+                <button onClick={handleGantiPassword} disabled={gantiPassLoading}
+                  className="flex-1 bg-green-600 hover:bg-green-700 disabled:bg-gray-300 text-white py-2.5 rounded-xl text-sm font-semibold transition">
+                  {gantiPassLoading ? 'Menyimpan...' : 'Simpan'}
+                </button>
+              </div>
+            </div>
+          </div>
+        )}
 
         {/* Form Pesan Laundry */}
         {showForm && (
