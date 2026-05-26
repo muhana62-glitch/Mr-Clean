@@ -333,20 +333,25 @@ export default function Home() {
 
       {/* ── FOOTER ── */}
       <footer className="bg-blue-900 text-blue-200 py-8">
-        <div className="max-w-6xl mx-auto px-4 flex flex-col md:flex-row items-center justify-between gap-4">
-          <div className="flex items-center gap-2">
-            <img src="/logo_mrclean.png" alt="Mr. Clean" className="h-10 w-auto" />
-            <div>
-              <p className="font-bold text-white">Mr. Clean One Stop Laundry</p>
-              <p className="text-xs text-blue-300">Limbangan Wetan, Brebes, Jawa Tengah</p>
+        <div className="max-w-6xl mx-auto px-4 flex flex-col items-center gap-4">
+          <div className="flex flex-col md:flex-row items-center justify-between w-full gap-4">
+            <div className="flex items-center gap-2">
+              <img src="/logo_mrclean.png" alt="Mr. Clean" className="h-10 w-auto" />
+              <div>
+                <p className="font-bold text-white">Mr. Clean One Stop Laundry</p>
+                <p className="text-xs text-blue-300">Limbangan Wetan, Brebes, Jawa Tengah</p>
+              </div>
+            </div>
+            <div className="flex items-center gap-4 text-sm">
+              <Link href="/pelanggan/login" className="hover:text-white transition">Portal Pelanggan</Link>
+              <Link href="/karyawan/login" className="hover:text-white transition">Portal Karyawan</Link>
+              <Link href="/owner/login" className="hover:text-white transition">Portal Owner</Link>
             </div>
           </div>
-          <div className="flex items-center gap-4 text-sm">
-            <Link href="/pelanggan/login" className="hover:text-white transition">Portal Pelanggan</Link>
-            <Link href="/karyawan/login" className="hover:text-white transition">Portal Karyawan</Link>
-            <Link href="/owner/login" className="hover:text-white transition">Portal Owner</Link>
+          <div className="text-center">
+            <p className="text-xs text-blue-400">© 2026 Pasar Digital. All rights reserved.</p>
+            <p className="text-xs text-blue-400 mt-0.5">+62 896 3954 1438</p>
           </div>
-          <p className="text-xs text-blue-400">© 2026 Pasar Digital. All rights reserved. +62 896 3954 1438</p>
         </div>
       </footer>
     </div>
