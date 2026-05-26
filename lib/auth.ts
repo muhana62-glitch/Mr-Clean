@@ -65,12 +65,8 @@ export async function getUserProfile(userId: string): Promise<UserProfile | null
   return data as UserProfile
 }
 
-// ─── Get Role — pakai session aktif ──────────────────────────────────────────
+// ─── Get Role ─────────────────────────────────────────────────────────────────
 export async function getUserRole(userId: string): Promise<UserRole | null> {
-  // Pastikan session aktif dulu
-  const { data: sessionData } = await supabase.auth.getSession()
-  if (!sessionData.session) return null
-
   const { data, error } = await supabase
     .from('users')
     .select('role')
@@ -82,23 +78,36 @@ export async function getUserRole(userId: string): Promise<UserRole | null> {
 }
 
 // ─── Login dan langsung dapat role ───────────────────────────────────────────
-export async function loginAndGetRole(email: string, password: string): Promise<{ userId: string; role: UserRole }> {
-  const { data, error } = await supabase.auth.signInWithPassword({ email, password })
-  if (error) throw error
-  if (!data.user) throw new Error('Login gagal.')
+// Baca role dari tabel users setelah login
+export async function loginAndGetRole(
+  email: string,
+  password: string
+): Promise<{ userId: string; role: UserRole }> {
+  // Step 1: Login
+  const { data: authData, error: authError } = await supabase.auth.signInWithPassword({
+    email,
+    password,
+  })
+  if (authError) throw authError
+  if (!authData.user) throw new Error('Login gagal.')
 
-  // Setelah signIn, session sudah aktif — langsung query
+  // Step 2: Coba baca role dari tabel users (pakai service key via RPC kalau perlu)
   const { data: userData, error: userError } = await supabase
     .from('users')
     .select('role')
-    .eq('id', data.user.id)
+    .eq('id', authData.user.id)
     .single()
 
-  if (userError || !userData) {
+  if (userError) {
+    console.error('getUserRole error:', userError)
+    throw new Error(`Gagal membaca role: ${userError.message}`)
+  }
+
+  if (!userData) {
     throw new Error('Akun tidak ditemukan di sistem. Hubungi admin.')
   }
 
-  return { userId: data.user.id, role: userData.role as UserRole }
+  return { userId: authData.user.id, role: userData.role as UserRole }
 }
 
 // ─── Dashboard path ───────────────────────────────────────────────────────────

@@ -25,7 +25,8 @@ export default function KaryawanLogin() {
       }
       router.push('/karyawan/dashboard')
     } catch (err: any) {
-      setError(err.message ?? 'Login gagal. Periksa email dan password Anda.')
+      // Tampilkan error detail untuk debug
+      setError(err.message ?? 'Login gagal.')
     } finally {
       setLoading(false)
     }
