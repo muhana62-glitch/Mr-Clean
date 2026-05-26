@@ -118,7 +118,7 @@ export default function DetailOrderPage() {
       }
 
       // Update order total — pertahankan status kalau sudah diambil
-      const newStatus = order.status === 'diambil' ? 'diambil' : 'selesai'
+      const newStatus = order?.status === 'diambil' ? 'diambil' : 'selesai'
       await supabase.from('orders').update({
         total_harga: totalHarga,
         bagi_hasil_persen: bagiHasilPersen,
