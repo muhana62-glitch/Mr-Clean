@@ -4,6 +4,7 @@ import { useState } from 'react'
 import { useRouter } from 'next/navigation'
 import Link from 'next/link'
 import { loginAndGetRole } from '@/lib/auth'
+import { supabase } from '@/lib/supabase'
 import { AlertCircle, Mail, Lock, Eye, EyeOff } from 'lucide-react'
 
 export default function OwnerLogin() {
@@ -19,13 +20,19 @@ export default function OwnerLogin() {
     setError('')
     setLoading(true)
     try {
+      // Cek kalau sudah login
+      const { data: { user: existingUser } } = await supabase.auth.getUser()
+      if (existingUser) {
+        const { data: profile } = await supabase.from('users').select('role').eq('id', existingUser.id).single()
+        if (profile?.role === 'owner') { router.push('/owner/dashboard'); return }
+      }
+
       const { role } = await loginAndGetRole(email, password)
       if (role !== 'owner') {
         throw new Error('Akun ini bukan akun owner.')
       }
       router.push('/owner/dashboard')
     } catch (err: any) {
-      // Tampilkan error detail untuk debug
       setError(err.message ?? 'Login gagal.')
     } finally {
       setLoading(false)

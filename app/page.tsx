@@ -1,4 +1,5 @@
 import Link from 'next/link'
+import NavbarHome from './components/NavbarHome'
 import { getWhatsAppLink } from '@/lib/utils'
 import {
   MessageCircle,
@@ -21,31 +22,7 @@ export default function Home() {
   return (
     <div className="min-h-screen bg-white font-sans">
       {/* ── NAVBAR ── */}
-      <nav className="sticky top-0 z-50 bg-white border-b border-gray-100 shadow-sm">
-        <div className="max-w-6xl mx-auto px-4 py-3 flex items-center justify-between">
-          <div className="flex items-center gap-2">
-            <img src="/logo_mrclean.png" alt="Mr. Clean" className="h-10 w-auto" />
-            <div>
-              <span className="font-bold text-blue-900 text-lg leading-none">Mr. Clean</span>
-              <span className="block text-xs text-gray-500 leading-none">One Stop Laundry</span>
-            </div>
-          </div>
-          <div className="hidden md:flex items-center gap-6 text-sm font-medium text-gray-600">
-            <a href="#layanan" className="hover:text-blue-600 transition">Layanan</a>
-            <a href="#harga" className="hover:text-blue-600 transition">Harga</a>
-            <a href="#kontak" className="hover:text-blue-600 transition">Kontak</a>
-          </div>
-          <a
-            href={WA_LINK}
-            target="_blank"
-            rel="noopener noreferrer"
-            className="flex items-center gap-2 bg-green-500 hover:bg-green-600 text-white text-sm font-semibold px-4 py-2 rounded-full transition"
-          >
-            <MessageCircle size={16} />
-            WhatsApp
-          </a>
-        </div>
-      </nav>
+      <NavbarHome />
 
       {/* ── HERO ── */}
       <section className="bg-gradient-to-br from-blue-900 via-blue-800 to-blue-700 text-white">
