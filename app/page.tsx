@@ -132,42 +132,36 @@ export default function Home() {
               icon: <Shirt size={28} className="text-blue-600" />,
               title: 'Cuci Kiloan',
               desc: 'Cuci reguler dan express untuk pakaian sehari-hari. Bersih, wangi, dan rapi.',
-              badge: 'Mulai Rp 7.000/kg',
               color: 'border-blue-200 bg-blue-50',
             },
             {
               icon: <Sparkles size={28} className="text-purple-600" />,
               title: 'Dry Cleaning',
               desc: 'Pembersihan khusus untuk pakaian sensitif, jas, gaun, dan bahan premium.',
-              badge: 'Mulai Rp 25.000/pcs',
               color: 'border-purple-200 bg-purple-50',
             },
             {
               icon: <Wind size={28} className="text-green-600" />,
               title: 'Cuci + Setrika',
               desc: 'Pakaian dicuci bersih lalu disetrika rapi. Siap pakai langsung.',
-              badge: 'Mulai Rp 10.000/kg',
               color: 'border-green-200 bg-green-50',
             },
             {
               icon: <Package size={28} className="text-orange-600" />,
               title: 'Cuci Sepatu',
               desc: 'Sepatu dicuci bersih, disikat, dan dikeringkan dengan sempurna.',
-              badge: 'Mulai Rp 35.000/pasang',
               color: 'border-orange-200 bg-orange-50',
             },
             {
               icon: <Package size={28} className="text-pink-600" />,
               title: 'Cuci Tas',
               desc: 'Tas berbagai jenis dibersihkan dengan teknik yang tepat sesuai bahan.',
-              badge: 'Mulai Rp 40.000/pcs',
               color: 'border-pink-200 bg-pink-50',
             },
             {
               icon: <Shirt size={28} className="text-teal-600" />,
               title: 'Selimut & Bed Cover',
               desc: 'Cuci selimut, bed cover, dan sprei besar dengan mesin kapasitas besar.',
-              badge: 'Mulai Rp 30.000/pcs',
               color: 'border-teal-200 bg-teal-50',
             },
           ].map((s) => (
@@ -177,10 +171,7 @@ export default function Home() {
             >
               <div className="mb-3">{s.icon}</div>
               <h3 className="font-bold text-gray-900 text-lg mb-2">{s.title}</h3>
-              <p className="text-gray-600 text-sm mb-4">{s.desc}</p>
-              <span className="inline-block bg-white text-gray-700 text-xs font-semibold px-3 py-1 rounded-full border border-gray-200">
-                {s.badge}
-              </span>
+              <p className="text-gray-600 text-sm">{s.desc}</p>
             </div>
           ))}
         </div>
@@ -188,43 +179,23 @@ export default function Home() {
 
       {/* ── HARGA ── */}
       <section id="harga" className="bg-blue-900 text-white py-16">
-        <div className="max-w-4xl mx-auto px-4">
-          <div className="text-center mb-10">
-            <h2 className="text-3xl font-extrabold mb-3">Daftar Harga</h2>
-            <p className="text-blue-200">Harga transparan, tidak ada biaya tersembunyi</p>
+        <div className="max-w-4xl mx-auto px-4 text-center">
+          <h2 className="text-3xl font-extrabold mb-3">Informasi Harga</h2>
+          <p className="text-blue-200 mb-8">Harga layanan kami bervariasi tergantung jenis dan jumlah cucian</p>
+          <div className="bg-white/10 rounded-2xl p-8 max-w-lg mx-auto">
+            <p className="text-blue-100 text-lg mb-6">
+              Untuk informasi harga terkini, silakan hubungi kami langsung via WhatsApp atau kunjungi toko kami.
+            </p>
+            <a
+              href="https://wa.me/6281902156350?text=Halo%20Mr.%20Clean%2C%20saya%20ingin%20menanyakan%20harga%20layanan%20laundry"
+              target="_blank"
+              rel="noopener noreferrer"
+              className="inline-flex items-center gap-2 bg-green-500 hover:bg-green-400 text-white font-bold px-6 py-3 rounded-xl transition"
+            >
+              <MessageCircle size={20} />
+              Tanya Harga via WhatsApp
+            </a>
           </div>
-          <div className="bg-white/10 rounded-2xl overflow-hidden">
-            <table className="w-full text-sm">
-              <thead>
-                <tr className="bg-white/10 text-blue-200 text-left">
-                  <th className="px-6 py-4 font-semibold">Layanan</th>
-                  <th className="px-6 py-4 font-semibold text-right">Harga</th>
-                  <th className="px-6 py-4 font-semibold text-right">Estimasi</th>
-                </tr>
-              </thead>
-              <tbody>
-                {[
-                  { nama: 'Cuci Reguler', harga: 'Rp 7.000 / kg', est: '2–3 hari' },
-                  { nama: 'Cuci Express', harga: 'Rp 12.000 / kg', est: 'Hari ini' },
-                  { nama: 'Cuci + Setrika', harga: 'Rp 10.000 / kg', est: '2–3 hari' },
-                  { nama: 'Setrika Saja', harga: 'Rp 5.000 / kg', est: '1 hari' },
-                  { nama: 'Dry Cleaning', harga: 'Rp 25.000 / pcs', est: '3–5 hari' },
-                  { nama: 'Cuci Sepatu', harga: 'Rp 35.000 / pasang', est: '2–3 hari' },
-                  { nama: 'Cuci Tas', harga: 'Rp 40.000 / pcs', est: '2–3 hari' },
-                  { nama: 'Selimut / Bed Cover', harga: 'Rp 30.000 / pcs', est: '2–3 hari' },
-                ].map((item, i) => (
-                  <tr key={item.nama} className={i % 2 === 0 ? '' : 'bg-white/5'}>
-                    <td className="px-6 py-3 font-medium">{item.nama}</td>
-                    <td className="px-6 py-3 text-right text-yellow-300 font-semibold">{item.harga}</td>
-                    <td className="px-6 py-3 text-right text-blue-200">{item.est}</td>
-                  </tr>
-                ))}
-              </tbody>
-            </table>
-          </div>
-          <p className="text-center text-blue-300 text-xs mt-4">
-            * Harga dapat berubah. Hubungi kami untuk konfirmasi harga terkini.
-          </p>
         </div>
       </section>
 
