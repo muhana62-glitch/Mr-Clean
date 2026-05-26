@@ -13,6 +13,7 @@ interface Pelanggan {
   nama: string
   no_wa: string
   alamat: string | null
+  total_order: number
 }
 
 interface JenisCucian {
