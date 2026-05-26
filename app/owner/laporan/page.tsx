@@ -189,7 +189,7 @@ export default function LaporanPage() {
         </div>
         <div class="ttd">
           <div class="line"></div>
-          <p>Owner Mr. Clean Brebes</p>
+          <p>Mr. Clean Cabang Brebes</p>
         </div>
       </div>
     </body></html>`)
