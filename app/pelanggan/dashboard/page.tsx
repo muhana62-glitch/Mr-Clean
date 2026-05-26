@@ -51,11 +51,12 @@ export default function PelangganDashboard() {
         return
       }
       const profile = await getUserProfile(user.id)
-      if (!profile || profile.role !== 'pelanggan') {
+      // Kalau profile null tapi session ada, tetap lanjut
+      if (profile && profile.role !== 'pelanggan') {
         router.push('/pelanggan/login')
         return
       }
-      setUserName(profile.nama)
+      setUserName(profile?.nama ?? 'Pelanggan')
       await fetchData(user.id)
       setLoading(false)
     }
