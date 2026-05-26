@@ -1,9 +1,10 @@
 'use client'
 
 import { useState } from 'react'
-import Link from 'next/link'
 import { useRouter } from 'next/navigation'
-import { Mail, Lock, AlertCircle } from 'lucide-react'
+import Link from 'next/link'
+import { loginUser, getUserRole } from '@/lib/auth'
+import { AlertCircle, Mail, Lock, Eye, EyeOff } from 'lucide-react'
 
 export default function KaryawanLogin() {
   const router = useRouter()
@@ -11,100 +12,102 @@ export default function KaryawanLogin() {
   const [password, setPassword] = useState('')
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState('')
+  const [showPass, setShowPass] = useState(false)
 
   const handleLogin = async (e: React.FormEvent) => {
     e.preventDefault()
     setError('')
     setLoading(true)
-
     try {
-      // TODO: Integrate with Supabase auth
-      console.log('Login attempt:', { email, password })
-      
-      // Temporary redirect to dashboard
+      const { user } = await loginUser(email, password)
+      if (!user) throw new Error('Login gagal.')
+
+      const role = await getUserRole(user.id)
+      if (role !== 'karyawan') {
+        throw new Error('Akun ini bukan akun karyawan.')
+      }
       router.push('/karyawan/dashboard')
     } catch (err: any) {
-      setError(err.message || 'Login failed')
+      setError(err.message ?? 'Login gagal. Periksa email dan password Anda.')
     } finally {
       setLoading(false)
     }
   }
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-blue-50 to-blue-100 flex items-center justify-center p-4">
-      <div className="bg-white rounded-lg shadow-xl p-8 w-full max-w-md">
-        {/* Header */}
-        <div className="text-center mb-8">
-          <div className="text-4xl mb-4">👷</div>
-          <h1 className="text-3xl font-bold text-blue-900 mb-2">Karyawan Login</h1>
-          <p className="text-gray-600">Mr. Clean Laundry System</p>
+    <div className="min-h-screen bg-gradient-to-br from-blue-50 via-sky-50 to-cyan-50 flex items-center justify-center p-4">
+      <div className="w-full max-w-md">
+        {/* Logo */}
+        <div className="text-center mb-6">
+          <Link href="/" className="inline-flex flex-col items-center gap-1">
+            <span className="text-5xl">🧺</span>
+            <span className="font-extrabold text-blue-900 text-xl">Mr. Clean Laundry</span>
+            <span className="text-gray-500 text-sm">Portal Karyawan</span>
+          </Link>
         </div>
 
-        {/* Error Message */}
-        {error && (
-          <div className="bg-red-50 border border-red-200 rounded-lg p-4 mb-6 flex gap-3">
-            <AlertCircle className="text-red-600 flex-shrink-0" size={20} />
-            <p className="text-red-600 text-sm">{error}</p>
-          </div>
-        )}
+        <div className="bg-white rounded-2xl shadow-xl p-8">
+          <h2 className="text-xl font-bold text-gray-900 mb-1">Selamat Datang 👷</h2>
+          <p className="text-gray-500 text-sm mb-6">Masuk untuk mengelola pesanan laundry</p>
 
-        {/* Form */}
-        <form onSubmit={handleLogin} className="space-y-4">
-          {/* Email */}
-          <div>
-            <label className="block text-sm font-medium text-gray-700 mb-2">
-              Email
-            </label>
-            <div className="relative">
-              <Mail className="absolute left-3 top-3 text-gray-400" size={20} />
-              <input
-                type="email"
-                value={email}
-                onChange={(e) => setEmail(e.target.value)}
-                placeholder="karyawan@mrclean.com"
-                className="w-full pl-10 pr-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
-                required
-              />
+          {error && (
+            <div className="flex gap-3 bg-red-50 border border-red-200 rounded-xl p-4 mb-5">
+              <AlertCircle className="text-red-500 flex-shrink-0 mt-0.5" size={18} />
+              <p className="text-red-700 text-sm">{error}</p>
             </div>
-          </div>
+          )}
 
-          {/* Password */}
-          <div>
-            <label className="block text-sm font-medium text-gray-700 mb-2">
-              Password
-            </label>
-            <div className="relative">
-              <Lock className="absolute left-3 top-3 text-gray-400" size={20} />
-              <input
-                type="password"
-                value={password}
-                onChange={(e) => setPassword(e.target.value)}
-                placeholder="••••••••"
-                className="w-full pl-10 pr-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
-                required
-              />
+          <form onSubmit={handleLogin} className="space-y-4">
+            <div>
+              <label className="block text-sm font-medium text-gray-700 mb-1.5">Email</label>
+              <div className="relative">
+                <Mail className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400" size={18} />
+                <input
+                  type="email"
+                  value={email}
+                  onChange={(e) => setEmail(e.target.value)}
+                  placeholder="karyawan@mrclean.com"
+                  className="w-full pl-10 pr-4 py-2.5 border border-gray-300 rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500 text-sm"
+                  required
+                />
+              </div>
             </div>
-          </div>
-
-          {/* Login Button */}
-          <button
-            type="submit"
-            disabled={loading}
-            className="w-full bg-blue-600 text-white py-2 rounded-lg hover:bg-blue-700 transition font-medium disabled:bg-gray-400"
-          >
-            {loading ? 'Logging in...' : 'Login'}
-          </button>
-        </form>
-
-        {/* Footer */}
-        <div className="mt-6 text-center text-sm text-gray-600">
-          <p>
-            Back to{' '}
-            <Link href="/" className="text-blue-600 hover:underline">
-              Home
-            </Link>
-          </p>
+            <div>
+              <label className="block text-sm font-medium text-gray-700 mb-1.5">Password</label>
+              <div className="relative">
+                <Lock className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400" size={18} />
+                <input
+                  type={showPass ? 'text' : 'password'}
+                  value={password}
+                  onChange={(e) => setPassword(e.target.value)}
+                  placeholder="••••••••"
+                  className="w-full pl-10 pr-10 py-2.5 border border-gray-300 rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500 text-sm"
+                  required
+                />
+                <button
+                  type="button"
+                  onClick={() => setShowPass(!showPass)}
+                  className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-400 hover:text-gray-600"
+                >
+                  {showPass ? <EyeOff size={18} /> : <Eye size={18} />}
+                </button>
+              </div>
+            </div>
+            <button
+              type="submit"
+              disabled={loading}
+              className="w-full bg-blue-600 hover:bg-blue-700 disabled:bg-gray-300 text-white font-semibold py-3 rounded-xl transition text-sm"
+            >
+              {loading ? 'Memproses...' : 'Masuk'}
+            </button>
+          </form>
         </div>
+
+        <p className="text-center mt-5 text-sm text-gray-500">
+          <Link href="/" className="text-blue-600 hover:underline font-medium">
+            ← Kembali ke Beranda
+          </Link>
+        </p>
       </div>
     </div>
   )

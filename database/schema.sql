@@ -1,184 +1,207 @@
--- MR. CLEAN LAUNDRY DATABASE SCHEMA
-<<<<<<< HEAD
--- Copy-paste this ke Supabase SQL Editor
-=======
+-- ============================================================
+-- MR. CLEAN LAUNDRY — DATABASE SCHEMA
 -- Jalankan di Supabase SQL Editor
->>>>>>> 6f9232cb17267921b3d072fe34b6e5c440ce2bba
+-- ============================================================
 
 CREATE EXTENSION IF NOT EXISTS "uuid-ossp";
 
--- USERS TABLE
-CREATE TABLE users (
-  id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
-  email VARCHAR(255) UNIQUE NOT NULL,
-  phone VARCHAR(20) NOT NULL,
-  name VARCHAR(255) NOT NULL,
-  password_hash VARCHAR(255) NOT NULL,
-  role VARCHAR(50) NOT NULL CHECK (role IN ('admin', 'owner', 'karyawan', 'customer')),
+-- ============================================================
+-- USERS TABLE (linked to Supabase Auth)
+-- ============================================================
+CREATE TABLE IF NOT EXISTS users (
+  id UUID PRIMARY KEY REFERENCES auth.users(id) ON DELETE CASCADE,
+  email VARCHAR(255) NOT NULL UNIQUE,
+  nama VARCHAR(255) NOT NULL,
+  no_hp VARCHAR(20),
+  role VARCHAR(50) NOT NULL CHECK (role IN ('owner', 'karyawan', 'pelanggan')),
   alamat TEXT,
-  avatar_url TEXT,
   is_active BOOLEAN DEFAULT true,
-  created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-  updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+  created_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP,
+  updated_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP
 );
 
--- CUSTOMERS TABLE
-CREATE TABLE customers (
-  id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
-  user_id UUID UNIQUE NOT NULL REFERENCES users(id) ON DELETE CASCADE,
-  total_orders INTEGER DEFAULT 0,
-  total_spending DECIMAL(15, 2) DEFAULT 0,
-  member_since TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-  last_order_date TIMESTAMP,
-  notes TEXT,
-  created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-  updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+-- ============================================================
+-- PELANGGAN TABLE
+-- ============================================================
+CREATE TABLE IF NOT EXISTS pelanggan (
+  id BIGSERIAL PRIMARY KEY,
+  user_id UUID UNIQUE REFERENCES users(id) ON DELETE CASCADE,
+  total_order INTEGER DEFAULT 0,
+  total_pengeluaran DECIMAL(15, 2) DEFAULT 0,
+  created_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP,
+  updated_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP
 );
 
--- EMPLOYEES TABLE
-CREATE TABLE employees (
-  id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
-  user_id UUID UNIQUE NOT NULL REFERENCES users(id) ON DELETE CASCADE,
-  position VARCHAR(100),
-  salary DECIMAL(15, 2),
-  join_date DATE,
-  status VARCHAR(50) DEFAULT 'active',
-  created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-  updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+-- ============================================================
+-- KARYAWAN TABLE
+-- ============================================================
+CREATE TABLE IF NOT EXISTS karyawan (
+  id BIGSERIAL PRIMARY KEY,
+  user_id UUID UNIQUE REFERENCES users(id) ON DELETE CASCADE,
+  posisi VARCHAR(100),
+  tanggal_masuk DATE,
+  status VARCHAR(50) DEFAULT 'aktif',
+  created_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP,
+  updated_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP
 );
 
--- CATEGORIES TABLE
-CREATE TABLE categories (
-  id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
-  name VARCHAR(100) NOT NULL UNIQUE,
-  description TEXT,
-  icon VARCHAR(50),
-  color VARCHAR(7),
+-- ============================================================
+-- JENIS CUCIAN TABLE
+-- ============================================================
+CREATE TABLE IF NOT EXISTS jenis_cucian (
+  id BIGSERIAL PRIMARY KEY,
+  nama VARCHAR(100) NOT NULL UNIQUE,
+  deskripsi TEXT,
+  harga_kiloan DECIMAL(10, 2),
+  harga_satuan DECIMAL(10, 2),
   is_active BOOLEAN DEFAULT true,
-  created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-  updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+  created_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP,
+  updated_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP
 );
 
--- SERVICE TYPES TABLE
-CREATE TABLE service_types (
-  id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
-  name VARCHAR(100) NOT NULL UNIQUE,
-  description TEXT,
-  base_price DECIMAL(15, 2),
-  turnaround_days INTEGER DEFAULT 1,
-  is_active BOOLEAN DEFAULT true,
-  created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-  updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
-);
-
--- ITEMS TABLE
-CREATE TABLE items (
-  id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
-  name VARCHAR(150) NOT NULL,
-  category_id UUID NOT NULL REFERENCES categories(id) ON DELETE RESTRICT,
-  service_type_id UUID NOT NULL REFERENCES service_types(id) ON DELETE RESTRICT,
-  unit VARCHAR(20),
-  price DECIMAL(15, 2),
-  description TEXT,
-  is_active BOOLEAN DEFAULT true,
-  created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-  updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
-);
-
+-- ============================================================
 -- ORDERS TABLE
-CREATE TABLE orders (
-  id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
-  order_number VARCHAR(50) UNIQUE NOT NULL,
-  customer_id UUID NOT NULL REFERENCES customers(id) ON DELETE RESTRICT,
-  order_date TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-  pickup_date DATE,
-  delivery_date DATE,
-  status VARCHAR(50) NOT NULL DEFAULT 'pending' CHECK (status IN ('pending', 'proses', 'selesai', 'diambil', 'dibatalkan')),
-  total_amount DECIMAL(15, 2) DEFAULT 0,
-  notes TEXT,
-  created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-  updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+-- ============================================================
+CREATE TABLE IF NOT EXISTS orders (
+  id BIGSERIAL PRIMARY KEY,
+  no_order VARCHAR(50) UNIQUE NOT NULL,
+  pelanggan_id BIGINT NOT NULL REFERENCES pelanggan(id) ON DELETE RESTRICT,
+  karyawan_id BIGINT REFERENCES karyawan(id),
+  tanggal_masuk TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP,
+  tanggal_selesai TIMESTAMP WITH TIME ZONE,
+  tanggal_ambil TIMESTAMP WITH TIME ZONE,
+  total_harga DECIMAL(15, 2) DEFAULT 0,
+  status VARCHAR(50) NOT NULL DEFAULT 'diterima' CHECK (status IN ('diterima', 'diproses', 'selesai', 'diambil', 'dibatalkan')),
+  catatan TEXT,
+  created_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP,
+  updated_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP
 );
 
--- ORDER ITEMS TABLE
-CREATE TABLE order_items (
-  id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
-  order_id UUID NOT NULL REFERENCES orders(id) ON DELETE CASCADE,
-  item_id UUID NOT NULL REFERENCES items(id) ON DELETE RESTRICT,
-  quantity DECIMAL(10, 2) NOT NULL,
-  unit_price DECIMAL(15, 2) NOT NULL,
-  subtotal DECIMAL(15, 2) NOT NULL,
-  notes TEXT,
-  created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-  updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+-- ============================================================
+-- ORDER DETAIL TABLE
+-- ============================================================
+CREATE TABLE IF NOT EXISTS order_detail (
+  id BIGSERIAL PRIMARY KEY,
+  order_id BIGINT NOT NULL REFERENCES orders(id) ON DELETE CASCADE,
+  jenis_cucian_id BIGINT NOT NULL REFERENCES jenis_cucian(id),
+  kategori VARCHAR(50) NOT NULL CHECK (kategori IN ('kiloan', 'satuan')),
+  kuantitas DECIMAL(10, 2) NOT NULL,
+  harga_satuan DECIMAL(10, 2) NOT NULL,
+  subtotal DECIMAL(10, 2) NOT NULL,
+  catatan TEXT,
+  created_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP
 );
 
+-- ============================================================
 -- PAYMENTS TABLE
-CREATE TABLE payments (
-  id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
-  order_id UUID NOT NULL REFERENCES orders(id) ON DELETE RESTRICT,
-  amount DECIMAL(15, 2) NOT NULL,
-  payment_method VARCHAR(50) NOT NULL,
-  status VARCHAR(50) DEFAULT 'pending',
-  payment_date TIMESTAMP,
-  reference_number VARCHAR(100),
-  created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-  updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+-- ============================================================
+CREATE TABLE IF NOT EXISTS payments (
+  id BIGSERIAL PRIMARY KEY,
+  order_id BIGINT NOT NULL REFERENCES orders(id) ON DELETE RESTRICT,
+  jumlah DECIMAL(15, 2) NOT NULL,
+  metode VARCHAR(50) NOT NULL CHECK (metode IN ('tunai', 'transfer', 'qris')),
+  status VARCHAR(50) DEFAULT 'pending' CHECK (status IN ('pending', 'lunas', 'gagal')),
+  tanggal_bayar TIMESTAMP WITH TIME ZONE,
+  referensi VARCHAR(100),
+  created_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP
 );
 
--- INVOICES TABLE
-CREATE TABLE invoices (
-  id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
-  order_id UUID UNIQUE NOT NULL REFERENCES orders(id) ON DELETE RESTRICT,
-  invoice_number VARCHAR(50) UNIQUE NOT NULL,
-  total_amount DECIMAL(15, 2) NOT NULL,
-  pdf_url TEXT,
-  created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-  updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
-);
-
+-- ============================================================
 -- NOTIFICATIONS TABLE
-CREATE TABLE notifications (
-  id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
+-- ============================================================
+CREATE TABLE IF NOT EXISTS notifications (
+  id BIGSERIAL PRIMARY KEY,
   user_id UUID NOT NULL REFERENCES users(id) ON DELETE CASCADE,
-  order_id UUID REFERENCES orders(id) ON DELETE CASCADE,
-  title VARCHAR(255),
-  message TEXT NOT NULL,
-  type VARCHAR(50) NOT NULL,
+  order_id BIGINT REFERENCES orders(id) ON DELETE CASCADE,
+  judul VARCHAR(255),
+  pesan TEXT NOT NULL,
+  tipe VARCHAR(50) NOT NULL,
   is_read BOOLEAN DEFAULT false,
-  created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+  created_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP
 );
 
--- DAILY REPORTS TABLE
-CREATE TABLE daily_reports (
-  id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
-  report_date DATE NOT NULL UNIQUE,
-  total_orders INTEGER DEFAULT 0,
-  completed_orders INTEGER DEFAULT 0,
-  total_income DECIMAL(15, 2) DEFAULT 0,
-  total_expenses DECIMAL(15, 2) DEFAULT 0,
-  created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-  updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+-- ============================================================
+-- INDEXES
+-- ============================================================
+CREATE INDEX IF NOT EXISTS idx_users_email ON users(email);
+CREATE INDEX IF NOT EXISTS idx_users_role ON users(role);
+CREATE INDEX IF NOT EXISTS idx_orders_pelanggan ON orders(pelanggan_id);
+CREATE INDEX IF NOT EXISTS idx_orders_status ON orders(status);
+CREATE INDEX IF NOT EXISTS idx_order_detail_order ON order_detail(order_id);
+CREATE INDEX IF NOT EXISTS idx_payments_order ON payments(order_id);
+CREATE INDEX IF NOT EXISTS idx_notifications_user ON notifications(user_id);
+
+-- ============================================================
+-- ROW LEVEL SECURITY
+-- ============================================================
+ALTER TABLE users ENABLE ROW LEVEL SECURITY;
+ALTER TABLE pelanggan ENABLE ROW LEVEL SECURITY;
+ALTER TABLE karyawan ENABLE ROW LEVEL SECURITY;
+ALTER TABLE jenis_cucian ENABLE ROW LEVEL SECURITY;
+ALTER TABLE orders ENABLE ROW LEVEL SECURITY;
+ALTER TABLE order_detail ENABLE ROW LEVEL SECURITY;
+ALTER TABLE payments ENABLE ROW LEVEL SECURITY;
+ALTER TABLE notifications ENABLE ROW LEVEL SECURITY;
+
+-- Users: bisa baca data sendiri
+CREATE POLICY "users_select_own" ON users FOR SELECT USING (auth.uid() = id);
+CREATE POLICY "users_update_own" ON users FOR UPDATE USING (auth.uid() = id);
+
+-- Pelanggan: bisa baca data sendiri
+CREATE POLICY "pelanggan_select_own" ON pelanggan FOR SELECT USING (
+  user_id = auth.uid()
 );
 
--- MONTHLY REPORTS TABLE
-CREATE TABLE monthly_reports (
-  id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
-  year INTEGER NOT NULL,
-  month INTEGER NOT NULL,
-  total_orders INTEGER DEFAULT 0,
-  completed_orders INTEGER DEFAULT 0,
-  total_income DECIMAL(15, 2) DEFAULT 0,
-  total_expenses DECIMAL(15, 2) DEFAULT 0,
-  net_income DECIMAL(15, 2) DEFAULT 0,
-  created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-  UNIQUE(year, month)
+-- Orders: pelanggan lihat order sendiri, karyawan/owner lihat semua
+CREATE POLICY "orders_select_pelanggan" ON orders FOR SELECT USING (
+  pelanggan_id IN (SELECT id FROM pelanggan WHERE user_id = auth.uid())
+  OR EXISTS (SELECT 1 FROM users WHERE id = auth.uid() AND role IN ('karyawan', 'owner'))
+);
+CREATE POLICY "orders_insert_karyawan" ON orders FOR INSERT WITH CHECK (
+  EXISTS (SELECT 1 FROM users WHERE id = auth.uid() AND role IN ('karyawan', 'owner'))
+);
+CREATE POLICY "orders_update_karyawan" ON orders FOR UPDATE USING (
+  EXISTS (SELECT 1 FROM users WHERE id = auth.uid() AND role IN ('karyawan', 'owner'))
 );
 
--- CREATE INDEXES
-CREATE INDEX idx_users_email ON users(email);
-CREATE INDEX idx_orders_customer_id ON orders(customer_id);
-CREATE INDEX idx_orders_status ON orders(status);
-CREATE INDEX idx_order_items_order_id ON order_items(order_id);
-CREATE INDEX idx_payments_order_id ON payments(order_id);
-CREATE INDEX idx_invoices_order_id ON invoices(order_id);
+-- Order detail: ikuti akses order
+CREATE POLICY "order_detail_select" ON order_detail FOR SELECT USING (
+  order_id IN (
+    SELECT o.id FROM orders o
+    WHERE o.pelanggan_id IN (SELECT id FROM pelanggan WHERE user_id = auth.uid())
+    OR EXISTS (SELECT 1 FROM users WHERE id = auth.uid() AND role IN ('karyawan', 'owner'))
+  )
+);
+
+-- Jenis cucian: semua bisa baca
+CREATE POLICY "jenis_cucian_select_all" ON jenis_cucian FOR SELECT USING (true);
+CREATE POLICY "jenis_cucian_manage_owner" ON jenis_cucian FOR ALL USING (
+  EXISTS (SELECT 1 FROM users WHERE id = auth.uid() AND role = 'owner')
+);
+
+-- Notifications: baca notif sendiri
+CREATE POLICY "notifications_select_own" ON notifications FOR SELECT USING (user_id = auth.uid());
+CREATE POLICY "notifications_update_own" ON notifications FOR UPDATE USING (user_id = auth.uid());
+
+-- Payments: pelanggan lihat milik sendiri, karyawan/owner lihat semua
+CREATE POLICY "payments_select" ON payments FOR SELECT USING (
+  order_id IN (
+    SELECT o.id FROM orders o
+    WHERE o.pelanggan_id IN (SELECT id FROM pelanggan WHERE user_id = auth.uid())
+    OR EXISTS (SELECT 1 FROM users WHERE id = auth.uid() AND role IN ('karyawan', 'owner'))
+  )
+);
+
+-- ============================================================
+-- SEED DATA — Jenis Cucian
+-- ============================================================
+INSERT INTO jenis_cucian (nama, deskripsi, harga_kiloan, harga_satuan) VALUES
+  ('Cuci Reguler', 'Cuci + kering, estimasi 2-3 hari', 7000, NULL),
+  ('Cuci Express', 'Cuci + kering, selesai hari ini', 12000, NULL),
+  ('Cuci + Setrika', 'Cuci, kering, dan setrika rapi', 10000, NULL),
+  ('Setrika Saja', 'Hanya setrika tanpa cuci', 5000, NULL),
+  ('Dry Cleaning', 'Pembersihan khusus pakaian sensitif', NULL, 25000),
+  ('Sepatu', 'Cuci sepatu bersih dan wangi', NULL, 35000),
+  ('Tas', 'Cuci tas berbagai jenis', NULL, 40000),
+  ('Selimut / Bed Cover', 'Cuci selimut dan bed cover', NULL, 30000)
+ON CONFLICT (nama) DO NOTHING;
