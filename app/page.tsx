@@ -346,7 +346,7 @@ export default function Home() {
             <Link href="/karyawan/login" className="hover:text-white transition">Portal Karyawan</Link>
             <Link href="/owner/login" className="hover:text-white transition">Portal Owner</Link>
           </div>
-          <p className="text-xs text-blue-400">© 2025 Mr. Clean Laundry. All rights reserved.</p>
+          <p className="text-xs text-blue-400">© 2026 Pasar Digital. All rights reserved. +62 896 3954 1438</p>
         </div>
       </footer>
     </div>
