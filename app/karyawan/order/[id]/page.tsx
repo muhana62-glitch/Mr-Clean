@@ -44,7 +44,7 @@ export default function DetailOrderPage() {
   const [loading, setLoading] = useState(true)
   const [order, setOrder] = useState<Order | null>(null)
   const [details, setDetails] = useState<OrderDetail[]>([])
-  const [editedHarga, setEditedHarga] = useState<Record<number, number>>({})
+  const [editedHarga, setEditedHarga] = useState<Record<number, string>>({})
   const [bagiHasilPersen, setBagiHasilPersen] = useState(0)
   const [saving, setSaving] = useState(false)
   const [saved, setSaved] = useState(false)
@@ -74,9 +74,9 @@ export default function DetailOrderPage() {
 
       if (detailData) {
         setDetails(detailData as OrderDetail[])
-        // Init harga dari data yang ada
-        const hargaMap: Record<number, number> = {}
-        detailData.forEach((d: any) => { hargaMap[d.id] = d.harga_satuan })
+        // Init harga sebagai string agar bisa diedit bebas
+        const hargaMap: Record<number, string> = {}
+        detailData.forEach((d: any) => { hargaMap[d.id] = d.harga_satuan > 0 ? String(d.harga_satuan) : '' })
         setEditedHarga(hargaMap)
       }
 
@@ -89,13 +89,13 @@ export default function DetailOrderPage() {
     init()
   }, [orderId, router])
 
-  const updateHarga = (detailId: number, val: number) => {
+  const updateHarga = (detailId: number, val: string) => {
     setEditedHarga(prev => ({ ...prev, [detailId]: val }))
   }
 
   const hitungTotal = () => {
     return details.reduce((sum, d) => {
-      const harga = editedHarga[d.id] ?? d.harga_satuan
+      const harga = Number(editedHarga[d.id] ?? d.harga_satuan) || 0
       return sum + harga * d.kuantitas
     }, 0)
   }
@@ -109,7 +109,7 @@ export default function DetailOrderPage() {
     try {
       // Update setiap detail
       for (const d of details) {
-        const harga = editedHarga[d.id] ?? d.harga_satuan
+        const harga = Number(editedHarga[d.id]) || 0
         const subtotal = harga * d.kuantitas
         await supabase.from('order_detail').update({
           harga_satuan: harga,
@@ -131,7 +131,12 @@ export default function DetailOrderPage() {
       // Refresh data
       const { data: updatedDetails } = await supabase
         .from('order_detail').select('*').eq('order_id', orderId)
-      if (updatedDetails) setDetails(updatedDetails as OrderDetail[])
+      if (updatedDetails) {
+        setDetails(updatedDetails as OrderDetail[])
+        const hargaMap: Record<number, string> = {}
+        updatedDetails.forEach((d: any) => { hargaMap[d.id] = String(d.harga_satuan) })
+        setEditedHarga(hargaMap)
+      }
 
       const { data: updatedOrder } = await supabase
         .from('orders').select('*').eq('id', orderId).single()
@@ -305,9 +310,13 @@ export default function DetailOrderPage() {
                 <div className="flex items-center gap-2">
                   <span className="text-xs text-gray-500">Rp</span>
                   <input
-                    type="number"
-                    value={editedHarga[d.id] ?? d.harga_satuan}
-                    onChange={e => updateHarga(d.id, Number(e.target.value))}
+                    type="text"
+                    inputMode="numeric"
+                    value={editedHarga[d.id] ?? ''}
+                    onChange={e => {
+                      const val = e.target.value.replace(/[^0-9]/g, '')
+                      updateHarga(d.id, val)
+                    }}
                     className="w-28 px-3 py-1.5 border border-gray-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 text-right"
                     placeholder="0"
                   />
@@ -315,7 +324,7 @@ export default function DetailOrderPage() {
                 </div>
                 <div className="w-24 text-right">
                   <p className="text-sm font-bold text-gray-900">
-                    {formatRupiah((editedHarga[d.id] ?? d.harga_satuan) * d.kuantitas)}
+                    {formatRupiah((Number(editedHarga[d.id]) || 0) * d.kuantitas)}
                   </p>
                 </div>
               </div>
