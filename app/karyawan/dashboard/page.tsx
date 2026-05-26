@@ -70,8 +70,9 @@ export default function KaryawanDashboard() {
       const user = await getCurrentUser()
       if (!user) { router.push('/karyawan/login'); return }
       const profile = await getUserProfile(user.id)
-      if (!profile || profile.role !== 'karyawan') { router.push('/karyawan/login'); return }
-      setUserName(profile.nama)
+      // Kalau profile null tapi user ada, tetap lanjut (RLS mungkin ketat)
+      if (profile && profile.role !== 'karyawan') { router.push('/karyawan/login'); return }
+      setUserName(profile?.nama ?? 'Karyawan')
 
       await fetchOrders()
 

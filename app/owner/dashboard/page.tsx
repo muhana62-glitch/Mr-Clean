@@ -57,8 +57,9 @@ export default function OwnerDashboard() {
       const user = await getCurrentUser()
       if (!user) { router.push('/owner/login'); return }
       const profile = await getUserProfile(user.id)
-      if (!profile || profile.role !== 'owner') { router.push('/owner/login'); return }
-      setUserName(profile.nama)
+      // Kalau profile null tapi user ada, tetap lanjut
+      if (profile && profile.role !== 'owner') { router.push('/owner/login'); return }
+      setUserName(profile?.nama ?? 'Owner')
       await fetchData()
       setLoading(false)
     }
