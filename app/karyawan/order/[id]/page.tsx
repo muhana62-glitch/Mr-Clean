@@ -117,13 +117,14 @@ export default function DetailOrderPage() {
         }).eq('id', d.id)
       }
 
-      // Update order total
+      // Update order total — pertahankan status kalau sudah diambil
+      const newStatus = order.status === 'diambil' ? 'diambil' : 'selesai'
       await supabase.from('orders').update({
         total_harga: totalHarga,
         bagi_hasil_persen: bagiHasilPersen,
         bagi_hasil_nominal: bagiHasilNominal,
         pendapatan_bersih: pendapatanBersih,
-        status: 'selesai',
+        status: newStatus,
         tanggal_selesai: new Date().toISOString(),
         updated_at: new Date().toISOString(),
       }).eq('id', orderId)
@@ -356,10 +357,10 @@ export default function DetailOrderPage() {
         <div className="flex gap-3">
           <button
             onClick={handleSimpanHarga}
-            disabled={saving || order.status === 'diambil'}
+            disabled={saving}
             className="flex-1 flex items-center justify-center gap-2 bg-blue-600 hover:bg-blue-700 disabled:bg-gray-300 text-white font-semibold py-3 rounded-xl transition"
           >
-            <Save size={18} /> {saving ? 'Menyimpan...' : 'Simpan Harga & Selesaikan'}
+            <Save size={18} /> {saving ? 'Menyimpan...' : 'Simpan Harga'}
           </button>
           <button
             onClick={handleCetakInvoice}
