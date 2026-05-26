@@ -155,7 +155,7 @@ export default function DetailOrderPage() {
     if (!win) return
     const tgl = order ? formatTanggal(order.tanggal_masuk) : ''
     const itemRows = details.map(d => {
-      const harga = editedHarga[d.id] ?? d.harga_satuan
+      const harga = Number(editedHarga[d.id] ?? d.harga_satuan) || 0
       const subtotal = harga * d.kuantitas
       return `<tr>
         <td style="padding:6px 8px;border:1px solid #ddd">${d.nama_item}</td>
