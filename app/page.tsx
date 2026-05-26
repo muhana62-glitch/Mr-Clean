@@ -88,7 +88,7 @@ export default function Home() {
                 <span className="text-9xl md:text-[10rem] select-none">🧺</span>
               </div>
               <div className="absolute -top-4 -right-4 bg-yellow-400 text-blue-900 font-bold text-sm px-3 py-1.5 rounded-full shadow-lg">
-                ✓ Buka Setiap Hari
+                ✓ Buka 08.00–17.00
               </div>
               <div className="absolute -bottom-4 -left-4 bg-white text-blue-900 font-bold text-sm px-3 py-1.5 rounded-full shadow-lg">
                 📍 Brebes, Jawa Tengah
@@ -106,7 +106,7 @@ export default function Home() {
               { icon: '⚡', title: 'Express 1 Hari', desc: 'Selesai hari yang sama' },
               { icon: '💧', title: 'Bersih Maksimal', desc: 'Deterjen premium pilihan' },
               { icon: '🌸', title: 'Wangi Tahan Lama', desc: 'Pewangi berkualitas' },
-              { icon: '🚚', title: 'Antar Jemput', desc: 'Hubungi kami dulu' },
+              { icon: '🕗', title: 'Buka 08.00–17.00', desc: 'Senin sampai Minggu' },
             ].map((item) => (
               <div key={item.title} className="bg-white rounded-xl p-5 text-center shadow-sm border border-gray-100">
                 <div className="text-3xl mb-2">{item.icon}</div>
@@ -295,11 +295,26 @@ export default function Home() {
             <div className="bg-white rounded-xl p-6 text-center shadow-sm border border-gray-100">
               <MapPin className="mx-auto text-blue-600 mb-3" size={28} />
               <h4 className="font-bold text-gray-800 mb-1">Alamat</h4>
-              <p className="text-gray-600 text-sm">
+              <a
+                href="https://www.google.com/maps?q=-6.875762001312784,109.0597064784508"
+                target="_blank"
+                rel="noopener noreferrer"
+                className="text-blue-600 hover:underline text-sm"
+              >
                 Limbangan Wetan, Kec. Brebes,<br />
                 Kabupaten Brebes,<br />
                 Jawa Tengah
-              </p>
+              </a>
+              <div className="mt-3">
+                <a
+                  href="https://www.google.com/maps?q=-6.875762001312784,109.0597064784508"
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="inline-flex items-center gap-1.5 bg-blue-600 hover:bg-blue-700 text-white text-xs font-semibold px-3 py-1.5 rounded-full transition"
+                >
+                  <MapPin size={12} /> Buka Maps
+                </a>
+              </div>
             </div>
             <div className="bg-white rounded-xl p-6 text-center shadow-sm border border-gray-100">
               <Phone className="mx-auto text-green-600 mb-3" size={28} />
@@ -319,9 +334,9 @@ export default function Home() {
               <Clock className="mx-auto text-orange-600 mb-3" size={28} />
               <h4 className="font-bold text-gray-800 mb-1">Jam Operasional</h4>
               <p className="text-gray-600 text-sm">
-                Senin – Sabtu<br />
-                07.00 – 21.00 WIB<br />
-                <span className="text-orange-600 font-medium">Minggu: 08.00 – 18.00</span>
+                Senin – Minggu<br />
+                <span className="font-semibold text-gray-800">08.00 – 17.00 WIB</span><br />
+                <span className="text-green-600 font-medium text-xs mt-1 block">Buka setiap hari</span>
               </p>
             </div>
           </div>
