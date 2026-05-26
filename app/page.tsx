@@ -296,7 +296,7 @@ export default function Home() {
               <MapPin className="mx-auto text-blue-600 mb-3" size={28} />
               <h4 className="font-bold text-gray-800 mb-1">Alamat</h4>
               <a
-                href="https://www.google.com/maps?q=-6.875762001312784,109.0597064784508"
+                href="https://www.google.com/maps/place/Mr.Clean+One+Stop+Laundry/@-6.876023,109.0571745,17z/data=!3m1!4b1!4m6!3m5!1s0x2e6fba70d34c51a3:0x6f07b2e9da6299d1!8m2!3d-6.8760283!4d109.0597494!16s%2Fg%2F11jzw79ybz"
                 target="_blank"
                 rel="noopener noreferrer"
                 className="text-blue-600 hover:underline text-sm"
@@ -307,7 +307,7 @@ export default function Home() {
               </a>
               <div className="mt-3">
                 <a
-                  href="https://www.google.com/maps?q=-6.875762001312784,109.0597064784508"
+                  href="https://www.google.com/maps/place/Mr.Clean+One+Stop+Laundry/@-6.876023,109.0571745,17z/data=!3m1!4b1!4m6!3m5!1s0x2e6fba70d34c51a3:0x6f07b2e9da6299d1!8m2!3d-6.8760283!4d109.0597494!16s%2Fg%2F11jzw79ybz"
                   target="_blank"
                   rel="noopener noreferrer"
                   className="inline-flex items-center gap-1.5 bg-blue-600 hover:bg-blue-700 text-white text-xs font-semibold px-3 py-1.5 rounded-full transition"
