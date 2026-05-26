@@ -1,0 +1,30 @@
+{
+  "name": "Mr. Clean Laundry",
+  "short_name": "Mr. Clean",
+  "description": "Sistem Manajemen Laundry Mr. Clean - Brebes",
+  "start_url": "/",
+  "display": "standalone",
+  "background_color": "#ffffff",
+  "theme_color": "#1d4ed8",
+  "orientation": "portrait",
+  "icons": [
+    {
+      "src": "/logo_mrclean.png",
+      "sizes": "any",
+      "type": "image/png",
+      "purpose": "maskable any"
+    }
+  ],
+  "shortcuts": [
+    {
+      "name": "Login Pelanggan",
+      "url": "/pelanggan/login",
+      "description": "Masuk sebagai pelanggan"
+    },
+    {
+      "name": "Login Karyawan",
+      "url": "/karyawan/login",
+      "description": "Masuk sebagai karyawan"
+    }
+  ]
+}
