@@ -10,7 +10,6 @@ import {
   LogOut, Home, Plus, RefreshCw, Package, Clock, CheckCircle, X,
   ChevronDown, Save, Search,
 } from 'lucide-react'
-
 interface Order {
   id: number
   no_order: string
@@ -300,12 +299,12 @@ export default function KaryawanDashboard() {
             <RefreshCw size={15} className={refreshing ? 'animate-spin' : ''} />
             Refresh
           </button>
-          <button
-            onClick={() => setShowModal(true)}
+          <Link
+            href="/karyawan/order"
             className="flex items-center gap-1.5 text-sm bg-blue-600 hover:bg-blue-700 text-white px-4 py-2.5 rounded-xl transition font-semibold"
           >
-            <Plus size={16} /> Tambah Order
-          </button>
+            <Plus size={16} /> Input Order Baru
+          </Link>
         </div>
 
         {/* Table */}

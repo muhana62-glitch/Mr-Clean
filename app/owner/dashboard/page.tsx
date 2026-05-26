@@ -131,6 +131,9 @@ export default function OwnerDashboard() {
               <RefreshCw size={15} className={refreshing ? 'animate-spin' : ''} />
               Refresh
             </button>
+            <Link href="/owner/master-data" className="hidden sm:flex items-center gap-1.5 text-sm bg-purple-100 hover:bg-purple-200 text-purple-700 font-semibold px-3 py-2 rounded-lg transition">
+              ⚙️ Master Data
+            </Link>
             <Link href="/" className="hidden sm:flex items-center gap-1.5 text-sm text-gray-600 hover:text-gray-900 px-3 py-2 rounded-lg hover:bg-gray-100 transition">
               <Home size={16} /> Beranda
             </Link>
