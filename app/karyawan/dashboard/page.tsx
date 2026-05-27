@@ -300,6 +300,16 @@ export default function KaryawanDashboard() {
                               <path d="M12 0C5.373 0 0 5.373 0 12c0 2.123.554 4.118 1.528 5.855L0 24l6.335-1.508A11.945 11.945 0 0012 24c6.627 0 12-5.373 12-12S18.627 0 12 0zm0 21.818a9.818 9.818 0 01-5.006-1.371l-.36-.214-3.732.888.936-3.618-.235-.372A9.818 9.818 0 1112 21.818z"/>
                             </svg>
                           </button>
+                          {/* Konfirmasi order dari pelanggan */}
+                          {order.status === 'diterima' && (
+                            <button
+                              onClick={() => handleUpdateStatus(order.id, 'diproses')}
+                              title="Konfirmasi barang diterima, kirim ke pusat"
+                              className="text-xs bg-blue-600 hover:bg-blue-700 text-white px-2 py-1.5 rounded-lg transition font-medium"
+                            >
+                              ✓ Konfirmasi
+                            </button>
+                          )}
                         </div>
                       </td>
                     </tr>

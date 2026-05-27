@@ -50,6 +50,8 @@ export default function DetailOrderPage() {
   const [saving, setSaving] = useState(false)
   const [saved, setSaved] = useState(false)
   const [error, setError] = useState('')
+  const [photos, setPhotos] = useState<string[]>([])
+  const [uploading, setUploading] = useState(false)
 
   useEffect(() => {
     async function init() {
@@ -65,7 +67,10 @@ export default function DetailOrderPage() {
         .eq('id', orderId)
         .single()
 
-      if (orderData) setOrder(orderData as any)
+      if (orderData) {
+        setOrder(orderData as any)
+        if ((orderData as any).foto_urls) setPhotos((orderData as any).foto_urls)
+      }
 
       // Fetch detail
       const { data: detailData } = await supabase
@@ -164,8 +169,41 @@ export default function DetailOrderPage() {
     }
   }
 
-  const handleCetakInvoice = () => {
-    const win = window.open('', '_blank')
+  const handleUploadFoto = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const files = e.target.files
+    if (!files || files.length === 0) return
+    setUploading(true)
+    try {
+      const newUrls: string[] = []
+      for (const file of Array.from(files)) {
+        const ext = file.name.split('.').pop()
+        const fileName = `${orderId}/${Date.now()}.${ext}`
+        const { error: uploadErr } = await supabase.storage
+          .from('order-photos')
+          .upload(fileName, file, { upsert: true })
+        if (uploadErr) throw uploadErr
+        const { data: urlData } = supabase.storage
+          .from('order-photos')
+          .getPublicUrl(fileName)
+        newUrls.push(urlData.publicUrl)
+      }
+      const updatedPhotos = [...photos, ...newUrls]
+      setPhotos(updatedPhotos)
+      await supabase.from('orders').update({ foto_urls: updatedPhotos }).eq('id', orderId)
+    } catch (err: any) {
+      setError('Gagal upload foto: ' + err.message)
+    } finally {
+      setUploading(false)
+    }
+  }
+
+  const handleHapusFoto = async (url: string) => {
+    const updated = photos.filter(p => p !== url)
+    setPhotos(updated)
+    await supabase.from('orders').update({ foto_urls: updated }).eq('id', orderId)
+  }
+
+  const handleCetakInvoice = () => {    const win = window.open('', '_blank')
     if (!win) return
     const tgl = order ? formatTanggal(order.tanggal_masuk) : ''
     const itemRows = details.map(d => {
@@ -308,6 +346,35 @@ export default function DetailOrderPage() {
             <div><p className="text-gray-500">Pengiriman</p><p className="font-semibold text-gray-900">{order.jenis_pengiriman === 'jemput' ? '🚗 Dijemput' : '🚶 Diantar'}</p></div>
             {order.catatan && <div className="col-span-2"><p className="text-gray-500">Catatan</p><p className="font-semibold text-gray-900">{order.catatan}</p></div>}
           </div>
+        </div>
+
+        {/* Foto Barang */}
+        <div className="bg-white rounded-xl shadow-sm border border-gray-100 p-6">
+          <div className="flex items-center justify-between mb-3">
+            <h3 className="font-bold text-gray-900">📷 Foto Kondisi Barang</h3>
+            <label className={`flex items-center gap-1.5 text-sm font-semibold px-3 py-2 rounded-xl cursor-pointer transition ${uploading ? 'bg-gray-100 text-gray-400' : 'bg-blue-50 hover:bg-blue-100 text-blue-700'}`}>
+              {uploading ? 'Mengupload...' : '+ Tambah Foto'}
+              <input type="file" accept="image/*" multiple onChange={handleUploadFoto} className="hidden" disabled={uploading} />
+            </label>
+          </div>
+          {photos.length === 0 ? (
+            <div className="border-2 border-dashed border-gray-200 rounded-xl p-8 text-center">
+              <p className="text-gray-400 text-sm">Belum ada foto</p>
+              <p className="text-gray-300 text-xs mt-1">Foto kondisi barang sebagai bukti penerimaan</p>
+            </div>
+          ) : (
+            <div className="grid grid-cols-3 gap-3">
+              {photos.map((url, i) => (
+                <div key={i} className="relative group">
+                  <img src={url} alt={`Foto ${i+1}`} className="w-full h-24 object-cover rounded-xl border border-gray-200" />
+                  <button
+                    onClick={() => handleHapusFoto(url)}
+                    className="absolute top-1 right-1 bg-red-500 text-white rounded-full w-5 h-5 flex items-center justify-center text-xs opacity-0 group-hover:opacity-100 transition"
+                  >×</button>
+                </div>
+              ))}
+            </div>
+          )}
         </div>
 
         {/* Input Harga per Item */}
