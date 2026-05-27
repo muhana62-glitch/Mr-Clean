@@ -45,6 +45,7 @@ export default function DetailOrderPage() {
   const [order, setOrder] = useState<Order | null>(null)
   const [details, setDetails] = useState<OrderDetail[]>([])
   const [editedHarga, setEditedHarga] = useState<Record<number, string>>({})
+  const [editedKuantitas, setEditedKuantitas] = useState<Record<number, string>>({})
   const [bagiHasilPersen, setBagiHasilPersen] = useState(0)
   const [saving, setSaving] = useState(false)
   const [saved, setSaved] = useState(false)
@@ -74,10 +75,14 @@ export default function DetailOrderPage() {
 
       if (detailData) {
         setDetails(detailData as OrderDetail[])
-        // Init harga sebagai string agar bisa diedit bebas
         const hargaMap: Record<number, string> = {}
-        detailData.forEach((d: any) => { hargaMap[d.id] = d.harga_satuan > 0 ? String(d.harga_satuan) : '' })
+        const kuantitasMap: Record<number, string> = {}
+        detailData.forEach((d: any) => {
+          hargaMap[d.id] = d.harga_satuan > 0 ? String(d.harga_satuan) : ''
+          kuantitasMap[d.id] = d.kuantitas > 0 ? String(d.kuantitas) : ''
+        })
         setEditedHarga(hargaMap)
+        setEditedKuantitas(kuantitasMap)
       }
 
       // Ambil % bagi hasil
@@ -96,7 +101,8 @@ export default function DetailOrderPage() {
   const hitungTotal = () => {
     return details.reduce((sum, d) => {
       const harga = Number(editedHarga[d.id] ?? d.harga_satuan) || 0
-      return sum + harga * d.kuantitas
+      const qty = Number(editedKuantitas[d.id] ?? d.kuantitas) || 0
+      return sum + harga * qty
     }, 0)
   }
 
@@ -110,9 +116,11 @@ export default function DetailOrderPage() {
       // Update setiap detail
       for (const d of details) {
         const harga = Number(editedHarga[d.id]) || 0
-        const subtotal = harga * d.kuantitas
+        const qty = Number(editedKuantitas[d.id]) || d.kuantitas
+        const subtotal = harga * qty
         await supabase.from('order_detail').update({
           harga_satuan: harga,
+          kuantitas: qty,
           subtotal,
         }).eq('id', d.id)
       }
@@ -135,8 +143,13 @@ export default function DetailOrderPage() {
       if (updatedDetails) {
         setDetails(updatedDetails as OrderDetail[])
         const hargaMap: Record<number, string> = {}
-        updatedDetails.forEach((d: any) => { hargaMap[d.id] = String(d.harga_satuan) })
+        const kuantitasMap: Record<number, string> = {}
+        updatedDetails.forEach((d: any) => {
+          hargaMap[d.id] = String(d.harga_satuan)
+          kuantitasMap[d.id] = String(d.kuantitas)
+        })
         setEditedHarga(hargaMap)
+        setEditedKuantitas(kuantitasMap)
       }
 
       const { data: updatedOrder } = await supabase
@@ -157,10 +170,11 @@ export default function DetailOrderPage() {
     const tgl = order ? formatTanggal(order.tanggal_masuk) : ''
     const itemRows = details.map(d => {
       const harga = Number(editedHarga[d.id] ?? d.harga_satuan) || 0
-      const subtotal = harga * d.kuantitas
+      const qty = Number(editedKuantitas[d.id] ?? d.kuantitas) || 0
+      const subtotal = harga * qty
       return `<tr>
         <td style="padding:6px 8px;border:1px solid #ddd">${d.nama_item}</td>
-        <td style="padding:6px 8px;border:1px solid #ddd;text-align:center">${d.kuantitas} ${d.kategori === 'kiloan' ? 'kg' : 'pcs'}</td>
+        <td style="padding:6px 8px;border:1px solid #ddd;text-align:center">${qty} ${d.kategori === 'kiloan' ? 'kg' : 'pcs'}</td>
         <td style="padding:6px 8px;border:1px solid #ddd;text-align:right">${formatRupiah(harga)}</td>
         <td style="padding:6px 8px;border:1px solid #ddd;text-align:right">${formatRupiah(subtotal)}</td>
       </tr>`
@@ -306,9 +320,37 @@ export default function DetailOrderPage() {
               <div key={d.id} className="flex items-center gap-3 bg-gray-50 rounded-xl px-4 py-3">
                 <div className="flex-1">
                   <p className="font-medium text-gray-900 text-sm">{d.nama_item}</p>
-                  <p className="text-xs text-gray-500">{d.kuantitas} {d.kategori === 'kiloan' ? 'kg' : 'pcs'}</p>
+                  <p className="text-xs text-gray-500">
+                    {d.kategori === 'kiloan'
+                      ? <span className="text-orange-600 font-medium">⚖️ Input berat dari tagihan pusat</span>
+                      : `${editedKuantitas[d.id] ?? d.kuantitas} pcs`
+                    }
+                  </p>
                 </div>
                 <div className="flex items-center gap-2">
+                  {d.kategori === 'kiloan' ? (
+                    // Kiloan: input berat dari pusat
+                    <div className="flex items-center gap-1">
+                      <input
+                        type="text"
+                        inputMode="decimal"
+                        value={editedKuantitas[d.id] ?? ''}
+                        onChange={e => {
+                          const val = e.target.value.replace(/[^0-9.]/g, '')
+                          setEditedKuantitas(prev => ({ ...prev, [d.id]: val }))
+                        }}
+                        className="w-16 px-2 py-1.5 border border-orange-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-orange-400 text-right bg-orange-50"
+                        placeholder="0"
+                      />
+                      <span className="text-xs text-orange-600 font-medium">kg</span>
+                    </div>
+                  ) : (
+                    // Satuan: qty sudah fix dari pelanggan
+                    <span className="text-sm font-semibold text-gray-700 bg-gray-100 px-3 py-1.5 rounded-lg">
+                      {editedKuantitas[d.id] ?? d.kuantitas} pcs
+                    </span>
+                  )}
+                  <span className="text-gray-300">×</span>
                   <span className="text-xs text-gray-500">Rp</span>
                   <input
                     type="text"
@@ -325,7 +367,7 @@ export default function DetailOrderPage() {
                 </div>
                 <div className="w-24 text-right">
                   <p className="text-sm font-bold text-gray-900">
-                    {formatRupiah((Number(editedHarga[d.id]) || 0) * d.kuantitas)}
+                    {formatRupiah((Number(editedHarga[d.id]) || 0) * (Number(editedKuantitas[d.id]) || d.kuantitas))}
                   </p>
                 </div>
               </div>
