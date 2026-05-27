@@ -56,6 +56,7 @@ export default function PelangganDashboard() {
   const [catatan, setCatatan] = useState('')
   const [items, setItems] = useState<OrderItem[]>([])
   const [filterKategori, setFilterKategori] = useState('Semua')
+  const [searchItem, setSearchItem] = useState('')
   const [submitting, setSubmitting] = useState(false)
   const [formError, setFormError] = useState('')
   const [successMsg, setSuccessMsg] = useState('')
@@ -486,7 +487,6 @@ export default function PelangganDashboard() {
               {formError && (
                 <div className="bg-red-50 border border-red-200 rounded-xl p-3 text-red-700 text-sm">{formError}</div>
               )}
-
               {/* Jenis Pengiriman */}
               <div>
                 <p className="text-sm font-semibold text-gray-700 mb-2">Jenis Pengiriman</p>
@@ -512,22 +512,49 @@ export default function PelangganDashboard() {
                     </button>
                   ))}
                 </div>
-                {/* Grid item */}
-                <div className="grid grid-cols-2 sm:grid-cols-3 gap-2 max-h-64 overflow-y-auto pr-1">
-                  {filteredJenis.map(jc => {
-                    const selected = items.find(i => i.jenis_id === String(jc.id))
-                    return (
-                      <button key={jc.id} onClick={() => toggleItem(jc)}
-                        className={`text-left p-3 rounded-xl border-2 transition text-sm ${selected ? 'border-green-500 bg-green-50' : 'border-gray-200 hover:border-green-300 bg-white'}`}>
-                        <p className="font-medium text-gray-900 leading-tight">{jc.nama}</p>
-                        <p className="text-xs text-gray-400 mt-0.5">
-                          {jc.tipe === 'kiloan' ? 'Per kilogram ⚖️' : `Per ${jc.satuan}`}
-                        </p>
-                        {selected && <span className="text-xs text-green-600 font-semibold">✓ Dipilih</span>}
-                      </button>
-                    )
-                  })}
+                {/* Search item */}
+                <div className="relative mb-2">
+                  <input
+                    type="text"
+                    value={searchItem}
+                    onChange={e => setSearchItem(e.target.value)}
+                    placeholder="Cari nama item cucian..."
+                    className="w-full pl-9 pr-4 py-2.5 border border-gray-300 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-green-500"
+                  />
+                  <svg className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400 w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
+                  </svg>
                 </div>
+                {/* List item */}
+                <div className="border border-gray-200 rounded-xl overflow-hidden max-h-52 overflow-y-auto">
+                  {filteredJenis.filter(jc =>
+                    searchItem === '' || jc.nama.toLowerCase().includes(searchItem.toLowerCase())
+                  ).length === 0 ? (
+                    <p className="text-center text-gray-400 text-sm py-6">Item tidak ditemukan</p>
+                  ) : (
+                    filteredJenis
+                      .filter(jc => searchItem === '' || jc.nama.toLowerCase().includes(searchItem.toLowerCase()))
+                      .map(jc => {
+                        const selected = items.find(i => i.jenis_id === String(jc.id))
+                        return (
+                          <button key={jc.id} onClick={() => toggleItem(jc)}
+                            className={`w-full flex items-center justify-between px-4 py-3 text-left border-b border-gray-100 last:border-0 transition ${selected ? 'bg-green-50' : 'hover:bg-gray-50'}`}>
+                            <div>
+                              <p className="text-sm font-medium text-gray-900">{jc.nama}</p>
+                              <p className="text-xs text-gray-400">
+                                {jc.tipe === 'kiloan' ? '⚖️ Per kilogram' : `Per ${jc.satuan}`}
+                              </p>
+                            </div>
+                            {selected
+                              ? <span className="text-xs bg-green-100 text-green-700 font-semibold px-2 py-1 rounded-full">✓ Dipilih</span>
+                              : <span className="text-xs text-gray-400">+ Pilih</span>
+                            }
+                          </button>
+                        )
+                      })
+                  )}
+                </div>
+                <p className="text-xs text-gray-400 mt-1">{filteredJenis.length} item tersedia</p>
               </div>
 
               {/* Item yang dipilih + qty */}
