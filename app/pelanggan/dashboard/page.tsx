@@ -266,10 +266,11 @@ export default function PelangganDashboard() {
     if (existing) {
       setItems(items.filter(i => i.jenis_id !== String(jc.id)))
     } else {
-      const isKiloan = !!jc.harga_kiloan
-      const harga = jc.harga_satuan ?? jc.harga_kiloan ?? 0
+      // Kiloan: ada harga_kiloan (meski harga_satuan juga ada)
+      // Satuan: hanya harga_satuan, tidak ada harga_kiloan
+      const isKiloan = jc.harga_kiloan !== null && jc.harga_kiloan !== undefined
+      const harga = isKiloan ? (jc.harga_kiloan ?? 0) : (jc.harga_satuan ?? 0)
       const kategori_harga: 'kiloan' | 'satuan' = isKiloan ? 'kiloan' : 'satuan'
-      // Kiloan: qty 0 (belum ditimbang), satuan: qty 1
       const kuantitas = isKiloan ? 0 : 1
       setItems([...items, {
         jenis_id: String(jc.id),
@@ -384,40 +385,46 @@ export default function PelangganDashboard() {
         )}
 
         {/* Stats */}
-        <div className="grid grid-cols-3 gap-4">
-          <div className="bg-white rounded-xl p-5 shadow-sm border border-gray-100">
-            <div className="flex items-center gap-3">
-              <div className="bg-blue-100 p-2 rounded-lg"><Package className="text-blue-600" size={20} /></div>
-              <div><p className="text-xs text-gray-500">Total Cucian</p><p className="text-2xl font-bold text-gray-900">{stats.total}</p></div>
+        <div className="grid grid-cols-3 gap-3 mb-6">
+          <div className="bg-white rounded-xl p-4 shadow-sm border border-gray-100">
+            <div className="flex flex-col items-center text-center gap-1">
+              <div className="bg-blue-100 p-2 rounded-lg mb-1"><Package className="text-blue-600" size={18} /></div>
+              <p className="text-xs text-gray-500 leading-tight">Total Cucian</p>
+              <p className="text-2xl font-bold text-gray-900">{stats.total}</p>
             </div>
           </div>
-          <div className="bg-white rounded-xl p-5 shadow-sm border border-gray-100">
-            <div className="flex items-center gap-3">
-              <div className="bg-yellow-100 p-2 rounded-lg"><Clock className="text-yellow-600" size={20} /></div>
-              <div><p className="text-xs text-gray-500">Diproses</p><p className="text-2xl font-bold text-gray-900">{stats.aktif}</p></div>
+          <div className="bg-white rounded-xl p-4 shadow-sm border border-gray-100">
+            <div className="flex flex-col items-center text-center gap-1">
+              <div className="bg-yellow-100 p-2 rounded-lg mb-1"><Clock className="text-yellow-600" size={18} /></div>
+              <p className="text-xs text-gray-500 leading-tight">Diproses</p>
+              <p className="text-2xl font-bold text-gray-900">{stats.aktif}</p>
             </div>
           </div>
-          <div className="bg-white rounded-xl p-5 shadow-sm border border-gray-100">
-            <div className="flex items-center gap-3">
-              <div className="bg-green-100 p-2 rounded-lg"><CheckCircle className="text-green-600" size={20} /></div>
-              <div><p className="text-xs text-gray-500">Selesai</p><p className="text-2xl font-bold text-gray-900">{stats.selesai}</p></div>
+          <div className="bg-white rounded-xl p-4 shadow-sm border border-gray-100">
+            <div className="flex flex-col items-center text-center gap-1">
+              <div className="bg-green-100 p-2 rounded-lg mb-1"><CheckCircle className="text-green-600" size={18} /></div>
+              <p className="text-xs text-gray-500 leading-tight">Selesai</p>
+              <p className="text-2xl font-bold text-gray-900">{stats.selesai}</p>
             </div>
           </div>
         </div>
 
         {/* Tombol Pesan + WA */}
-        <div className="flex gap-3">
+        <div className="grid grid-cols-3 gap-2 mb-2">
           <button onClick={() => { setShowForm(true); setSuccessMsg('') }}
-            className="flex-1 flex items-center justify-center gap-2 bg-green-600 hover:bg-green-700 text-white font-semibold py-3 rounded-xl transition">
-            <Plus size={20} /> Pesan Laundry
+            className="flex flex-col items-center justify-center gap-1 bg-green-600 hover:bg-green-700 text-white font-semibold py-3 rounded-xl transition text-xs">
+            <Plus size={18} />
+            <span>Pesan Laundry</span>
           </button>
           <a href={WA_LINK} target="_blank" rel="noopener noreferrer"
-            className="flex items-center justify-center gap-2 bg-green-500 hover:bg-green-600 text-white font-semibold px-5 py-3 rounded-xl transition">
-            <MessageCircle size={20} /> WhatsApp
+            className="flex flex-col items-center justify-center gap-1 bg-green-500 hover:bg-green-600 text-white font-semibold py-3 rounded-xl transition text-xs">
+            <MessageCircle size={18} />
+            <span>WhatsApp</span>
           </a>
           <button onClick={() => setShowGantiPass(true)}
-            className="flex items-center justify-center gap-2 bg-gray-100 hover:bg-gray-200 text-gray-700 font-semibold px-4 py-3 rounded-xl transition text-sm">
-            🔑 Ganti Password
+            className="flex flex-col items-center justify-center gap-1 bg-gray-100 hover:bg-gray-200 text-gray-700 font-semibold py-3 rounded-xl transition text-xs">
+            <span className="text-base">🔑</span>
+            <span>Password</span>
           </button>
         </div>
 
@@ -514,7 +521,7 @@ export default function PelangganDashboard() {
                         className={`text-left p-3 rounded-xl border-2 transition text-sm ${selected ? 'border-green-500 bg-green-50' : 'border-gray-200 hover:border-green-300 bg-white'}`}>
                         <p className="font-medium text-gray-900 leading-tight">{jc.nama}</p>
                         <p className="text-xs text-gray-400 mt-0.5">
-                          {jc.harga_kiloan ? 'Per kilogram' : `Per ${jc.satuan}`}
+                          {jc.harga_kiloan !== null && jc.harga_kiloan !== undefined ? 'Per kilogram ⚖️' : `Per ${jc.satuan}`}
                         </p>
                         {selected && <span className="text-xs text-green-600 font-semibold">✓ Dipilih</span>}
                       </button>
@@ -534,8 +541,8 @@ export default function PelangganDashboard() {
                           <p className="text-sm font-medium text-gray-900">{item.nama}</p>
                           <p className="text-xs text-gray-500">
                             {item.kategori_harga === 'kiloan'
-                              ? '⚖️ Berat akan ditimbang oleh karyawan'
-                              : `Per ${item.kategori_harga === 'satuan' ? 'pcs' : 'pcs'}`}
+                              ? '⚖️ Berat ditimbang karyawan'
+                              : `Per pcs`}
                           </p>
                         </div>
                         {item.kategori_harga === 'satuan' ? (
