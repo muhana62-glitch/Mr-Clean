@@ -92,7 +92,9 @@ export default function MasterDataPage() {
         deskripsi: formDeskripsi || null,
         harga_kiloan: formHargaKiloan ? Number(formHargaKiloan) : null,
         harga_satuan: formHargaSatuan ? Number(formHargaSatuan) : null,
-        satuan: formSatuan, updated_at: new Date().toISOString(),
+        satuan: formSatuan,
+        tipe: formHargaKiloan ? 'kiloan' : 'satuan',
+        updated_at: new Date().toISOString(),
       }
       if (editId) {
         const { error } = await supabase.from('jenis_cucian').update(payload).eq('id', editId)

@@ -74,7 +74,6 @@ export default function InputOrderPage() {
 
       const { data: jc } = await supabase.from('jenis_cucian').select('*').eq('is_active', true).order('nama')
       if (jc) setJenisCucian(jc as JenisCucian[])
-
       const { data: pg } = await supabase.from('pengaturan').select('nilai').eq('kunci', 'bagi_hasil_persen').single()
       if (pg) setBagiHasilPersen(Number(pg.nilai))
 

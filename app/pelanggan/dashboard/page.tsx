@@ -27,6 +27,7 @@ interface JenisCucian {
   harga_kiloan: number | null
   harga_satuan: number | null
   satuan: string
+  tipe: string
 }
 
 interface OrderItem {
@@ -124,7 +125,7 @@ export default function PelangganDashboard() {
 
       // Ambil jenis cucian
       const { data: jc } = await supabase
-        .from('jenis_cucian').select('id, nama, kategori, harga_kiloan, harga_satuan, satuan')
+        .from('jenis_cucian').select('id, nama, kategori, harga_kiloan, harga_satuan, satuan, tipe')
         .eq('is_active', true).order('kategori').order('nama')
       if (jc) setJenisCucian(jc as JenisCucian[])
 
@@ -266,9 +267,8 @@ export default function PelangganDashboard() {
     if (existing) {
       setItems(items.filter(i => i.jenis_id !== String(jc.id)))
     } else {
-      // Kiloan: ada harga_kiloan (meski harga_satuan juga ada)
-      // Satuan: hanya harga_satuan, tidak ada harga_kiloan
-      const isKiloan = jc.harga_kiloan !== null && jc.harga_kiloan !== undefined
+      // Pakai kolom tipe dari database
+      const isKiloan = jc.tipe === 'kiloan'
       const harga = isKiloan ? (jc.harga_kiloan ?? 0) : (jc.harga_satuan ?? 0)
       const kategori_harga: 'kiloan' | 'satuan' = isKiloan ? 'kiloan' : 'satuan'
       const kuantitas = isKiloan ? 0 : 1
@@ -521,7 +521,7 @@ export default function PelangganDashboard() {
                         className={`text-left p-3 rounded-xl border-2 transition text-sm ${selected ? 'border-green-500 bg-green-50' : 'border-gray-200 hover:border-green-300 bg-white'}`}>
                         <p className="font-medium text-gray-900 leading-tight">{jc.nama}</p>
                         <p className="text-xs text-gray-400 mt-0.5">
-                          {jc.harga_kiloan !== null && jc.harga_kiloan !== undefined ? 'Per kilogram ⚖️' : `Per ${jc.satuan}`}
+                          {jc.tipe === 'kiloan' ? 'Per kilogram ⚖️' : `Per ${jc.satuan}`}
                         </p>
                         {selected && <span className="text-xs text-green-600 font-semibold">✓ Dipilih</span>}
                       </button>
