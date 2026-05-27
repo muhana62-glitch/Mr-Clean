@@ -29,6 +29,7 @@ export default function KaryawanDashboard() {
   const [refreshing, setRefreshing] = useState(false)
   const [search, setSearch] = useState('')
   const [filterStatus, setFilterStatus] = useState('semua')
+  const [newOrderCount, setNewOrderCount] = useState(0)
 
   const fetchOrders = async () => {
     const { data } = await supabase
@@ -59,6 +60,7 @@ export default function KaryawanDashboard() {
           table: 'orders',
         }, () => {
           fetchOrders()
+          setNewOrderCount(prev => prev + 1)
         })
         .on('postgres_changes', {
           event: 'UPDATE',
@@ -83,6 +85,7 @@ export default function KaryawanDashboard() {
 
   const handleRefresh = async () => {
     setRefreshing(true)
+    setNewOrderCount(0)
     await fetchOrders()
     setRefreshing(false)
   }
@@ -90,6 +93,17 @@ export default function KaryawanDashboard() {
   const handleUpdateStatus = async (orderId: number, newStatus: string) => {
     await supabase.from('orders').update({ status: newStatus, updated_at: new Date().toISOString() }).eq('id', orderId)
     setOrders(prev => prev.map(o => o.id === orderId ? { ...o, status: newStatus } : o))
+
+    // WA otomatis saat status selesai
+    if (newStatus === 'selesai') {
+      const order = orders.find(o => o.id === orderId)
+      if (order?.pelanggan?.no_wa) {
+        const nama = order.pelanggan.nama ?? 'Pelanggan'
+        const noWa = order.pelanggan.no_wa.replace(/^0/, '62').replace(/\D/g, '')
+        const pesan = `Halo ${nama} 👋\n\nCucian Anda di *Mr. Clean One Stop Laundry* sudah *selesai* dan siap diambil! 🎉\n\n📋 No. Order: *${order.no_order}*\n\nSilakan datang ke toko kami atau hubungi kami untuk pengiriman.\n\n_Mr. Clean Laundry - Limbangan Wetan, Brebes_\n_WA: 081902156350_`
+        window.open(`https://wa.me/${noWa}?text=${encodeURIComponent(pesan)}`, '_blank')
+      }
+    }
   }
 
   const handleWANotif = async (order: Order) => {
@@ -163,6 +177,11 @@ export default function KaryawanDashboard() {
               <p className="font-bold text-gray-900 leading-none">Halo, {userName} 👷</p>
               <p className="text-xs text-gray-500 mt-0.5">Dashboard Karyawan</p>
             </div>
+            {newOrderCount > 0 && (
+              <span className="bg-red-500 text-white text-xs font-bold px-2 py-0.5 rounded-full animate-pulse">
+                +{newOrderCount} order baru
+              </span>
+            )}
           </div>
           <div className="flex items-center gap-2">
             <Link href="/" className="hidden sm:flex items-center gap-1.5 text-sm text-gray-600 hover:text-gray-900 px-3 py-2 rounded-lg hover:bg-gray-100 transition">

@@ -295,8 +295,11 @@ export default function PelangganDashboard() {
 
   const handleSubmit = async () => {
     setFormError('')
-    if (items.length === 0) { setFormError('Pilih minimal 1 item cucian.'); return }
-    if (!pelangganId) { setFormError('Data pelanggan tidak ditemukan.'); return }
+    if (items.length === 0) { setFormError('Pilih minimal 1 item cucian terlebih dahulu.'); return }
+    if (items.every(i => i.kategori_harga === 'kiloan') && items.length > 0) {
+      // Boleh lanjut meski kiloan qty 0 karena belum ditimbang
+    }
+    if (!pelangganId) { setFormError('Data pelanggan tidak ditemukan. Coba logout dan login ulang.'); return }
     setSubmitting(true)
     try {
       // Generate no order
@@ -648,9 +651,26 @@ export default function PelangganDashboard() {
                       </td>
                       <td className="px-5 py-4 font-semibold text-gray-900">{formatRupiah(order.total_harga)}</td>
                       <td className="px-5 py-4">
-                        <span className={`px-3 py-1 rounded-full text-xs font-semibold ${getStatusColor(order.status)}`}>
-                          {getStatusLabel(order.status)}
-                        </span>
+                        <div className="flex flex-col gap-1">
+                          <span className={`px-3 py-1 rounded-full text-xs font-semibold w-fit ${getStatusColor(order.status)}`}>
+                            {getStatusLabel(order.status)}
+                          </span>
+                          {/* Mini timeline */}
+                          <div className="flex items-center gap-0.5 mt-1">
+                            {['diterima','diproses','selesai','diambil'].map((s, i) => {
+                              const steps = ['diterima','diproses','selesai','diambil']
+                              const currentIdx = steps.indexOf(order.status)
+                              const stepIdx = steps.indexOf(s)
+                              const done = stepIdx <= currentIdx
+                              return (
+                                <div key={s} className="flex items-center">
+                                  <div className={`w-2 h-2 rounded-full ${done ? 'bg-green-500' : 'bg-gray-200'}`} title={getStatusLabel(s)} />
+                                  {i < 3 && <div className={`w-4 h-0.5 ${stepIdx < currentIdx ? 'bg-green-500' : 'bg-gray-200'}`} />}
+                                </div>
+                              )
+                            })}
+                          </div>
+                        </div>
                       </td>
                       <td className="px-5 py-4">
                         {['selesai', 'diambil'].includes(order.status) && order.total_harga > 0 ? (
